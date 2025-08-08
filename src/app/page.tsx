@@ -7,7 +7,7 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { HotelCard } from '@/components/hotel-card';
 import { getApprovedHotels } from '@/lib/data';
-import { Search, Calendar, Users, Star, MapPin, Building2, BedDouble, ShieldCheck, LifeBuoy, CreditCard } from 'lucide-react';
+import { Search, Calendar, Users, Star, MapPin, Building2, BedDouble, ShieldCheck, LifeBuoy, CreditCard, Book, PartyPopper } from 'lucide-react';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 
 export default async function HomePage() {
@@ -29,7 +29,7 @@ export default async function HomePage() {
           />
           <div className="relative z-20 text-center p-4">
             <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tight drop-shadow-lg">
-              Find your next getaway
+              Find Your Perfect Stay
             </h1>
             <p className="mt-4 text-lg md:text-xl max-w-2xl mx-auto drop-shadow-md">
               Discover the best hotels and resorts for your next adventure.
@@ -58,7 +58,7 @@ export default async function HomePage() {
 
         <section id="how-it-works" className="py-24 sm:py-32">
           <div className="container mx-auto px-4">
-            <h2 className="text-4xl font-headline text-center font-bold tracking-tight">How it works</h2>
+            <h2 className="text-4xl font-headline text-center font-bold tracking-tight">How It Works</h2>
             <p className="mt-4 text-lg text-muted-foreground text-center max-w-2xl mx-auto">
               Find and book your perfect stay in just a few simple steps.
             </p>
@@ -74,20 +74,20 @@ export default async function HomePage() {
               </div>
               <div className="flex flex-col items-center">
                 <div className="bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center">
-                    <BedDouble className="h-8 w-8" />
-                </div>
-                <h3 className="mt-6 text-2xl font-headline font-bold">Select</h3>
-                <p className="mt-2 text-muted-foreground">
-                    Browse through a wide selection of hotels and choose the one that suits your needs.
-                </p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center">
-                    <Star className="h-8 w-8" />
+                    <Book className="h-8 w-8" />
                 </div>
                 <h3 className="mt-6 text-2xl font-headline font-bold">Book</h3>
                 <p className="mt-2 text-muted-foreground">
                     Securely book your room and receive an instant confirmation for a hassle-free experience.
+                </p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center">
+                    <PartyPopper className="h-8 w-8" />
+                </div>
+                <h3 className="mt-6 text-2xl font-headline font-bold">Enjoy</h3>
+                <p className="mt-2 text-muted-foreground">
+                   Relax and enjoy your stay, knowing everything is taken care of.
                 </p>
               </div>
             </div>
@@ -100,8 +100,8 @@ export default async function HomePage() {
             <p className="mt-4 text-lg text-muted-foreground text-center max-w-2xl mx-auto">
               Handpicked hotels that promise an exceptional experience.
             </p>
-            <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredHotels.slice(0, 3).map((hotel) => (
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {featuredHotels.slice(0, 4).map((hotel) => (
                 <Link href={`/hotel/${hotel.id}`} key={hotel.id}>
                     <HotelCard hotel={hotel} />
                 </Link>

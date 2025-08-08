@@ -19,6 +19,9 @@ export function HotelCard({ hotel }: HotelCardProps) {
           objectFit="cover"
           data-ai-hint={(hotel as any)['data-ai-hint'] || 'hotel exterior'}
         />
+         {hotel.category && (
+          <Badge className="absolute top-2 right-2" variant="secondary">{hotel.category}</Badge>
+        )}
       </div>
       <CardHeader>
         <CardTitle className="font-headline text-2xl">{hotel.name}</CardTitle>

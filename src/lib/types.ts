@@ -19,6 +19,7 @@ export type Hotel = {
   ownerId: string;
   status: 'pending' | 'approved' | 'rejected';
   coverImage: string;
+  category?: 'Premium' | 'Eco-Friendly' | 'Ski Resort' | 'Historic' | 'Boutique';
   createdAt: Date;
 };
 

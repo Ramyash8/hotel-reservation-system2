@@ -10,12 +10,12 @@ const users: Map<string, User> = new Map([
 ]);
 
 const hotels: Map<string, Hotel> = new Map([
-  ['hotel-1', { id: 'hotel-1', name: 'The Grand Budapest', location: 'Zubrowka', description: 'A luxurious hotel with a rich history, nestled in the heart of the mountains.', ownerId: 'user-2', status: 'approved', coverImage: 'https://placehold.co/1200x800.png', createdAt: new Date(), 'data-ai-hint': 'hotel luxury' }],
-  ['hotel-2', { id: 'hotel-2', name: 'Seaside Serenity', location: 'Coastal City', description: 'A charming hotel by the sea, awaiting your approval.', ownerId: 'user-2', status: 'pending', coverImage: 'https://placehold.co/1200x800.png', createdAt: new Date(), 'data-ai-hint': 'hotel beach' }],
-  ['hotel-3', { id: 'hotel-3', name: 'Urban Oasis', location: 'Metropolis', description: 'A modern hotel in the city center.', ownerId: 'user-2', status: 'approved', coverImage: 'https://placehold.co/1200x800.png', createdAt: new Date(), 'data-ai-hint': 'hotel city' }],
-  ['hotel-4', { id: 'hotel-4', name: 'Mountain Retreat', location: 'Alpine Village', description: 'A cozy retreat for mountain lovers.', ownerId: 'user-4', status: 'approved', coverImage: 'https://placehold.co/1200x800.png', createdAt: new Date(), 'data-ai-hint': 'hotel mountain' }],
-  ['hotel-5', { id: 'hotel-5', name: 'Desert Mirage', location: 'Sandy Plains', description: 'An oasis of luxury in the vast desert.', ownerId: 'user-4', status: 'pending', coverImage: 'https://placehold.co/1200x800.png', createdAt: new Date(), 'data-ai-hint': 'hotel desert' }],
-  ['hotel-6', { id: 'hotel-6', name: 'Forest Hideaway', location: 'Redwood Forest', description: 'A secluded cabin complex in the woods.', ownerId: 'user-4', status: 'approved', coverImage: 'https://placehold.co/1200x800.png', createdAt: new Date(), 'data-ai-hint': 'hotel forest' }],
+  ['hotel-1', { id: 'hotel-1', name: 'The Grand Budapest', location: 'Zubrowka', description: 'A luxurious hotel with a rich history, nestled in the heart of the mountains.', ownerId: 'user-2', status: 'approved', category: 'Historic', coverImage: 'https://placehold.co/1200x800.png', createdAt: new Date(), 'data-ai-hint': 'hotel luxury' }],
+  ['hotel-2', { id: 'hotel-2', name: 'Seaside Serenity', location: 'Coastal City', description: 'A charming hotel by the sea, awaiting your approval.', ownerId: 'user-2', status: 'pending', category: 'Eco-Friendly', coverImage: 'https://placehold.co/1200x800.png', createdAt: new Date(), 'data-ai-hint': 'hotel beach' }],
+  ['hotel-3', { id: 'hotel-3', name: 'Urban Oasis', location: 'Metropolis', description: 'A modern hotel in the city center.', ownerId: 'user-2', status: 'approved', category: 'Boutique', coverImage: 'https://placehold.co/1200x800.png', createdAt: new Date(), 'data-ai-hint': 'hotel city' }],
+  ['hotel-4', { id: 'hotel-4', name: 'Mountain Retreat', location: 'Alpine Village', description: 'A cozy retreat for mountain lovers.', ownerId: 'user-4', status: 'approved', category: 'Ski Resort', coverImage: 'https://placehold.co/1200x800.png', createdAt: new Date(), 'data-ai-hint': 'hotel mountain' }],
+  ['hotel-5', { id: 'hotel-5', name: 'Desert Mirage', location: 'Sandy Plains', description: 'An oasis of luxury in the vast desert.', ownerId: 'user-4', status: 'pending', category: 'Premium', coverImage: 'https://placehold.co/1200x800.png', createdAt: new Date(), 'data-ai-hint': 'hotel desert' }],
+  ['hotel-6', { id: 'hotel-6', name: 'Forest Hideaway', location: 'Redwood Forest', description: 'A secluded cabin complex in the woods.', ownerId: 'user-4', status: 'approved', category: 'Eco-Friendly', coverImage: 'https://placehold.co/1200x800.png', createdAt: new Date(), 'data-ai-hint': 'hotel forest' }],
 ]);
 
 const rooms: Map<string, Room> = new Map([
