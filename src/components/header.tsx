@@ -15,6 +15,7 @@ export function Header() {
         </Link>
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
           <Link href="/" className="transition-colors hover:text-primary">Home</Link>
+          <Link href="/owner" className="transition-colors hover:text-primary">Owner</Link>
           <Link href="/admin" className="transition-colors hover:text-primary">Admin</Link>
         </nav>
         <div className="flex flex-1 items-center justify-end space-x-4">
