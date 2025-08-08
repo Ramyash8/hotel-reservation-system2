@@ -33,24 +33,26 @@ export function AdminDashboard() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
+  const loadData = async () => {
+    setLoading(true);
+    const [hotels, rooms] = await Promise.all([
+      getPendingHotels(),
+      getPendingRooms(),
+    ]);
+    setPendingHotels(hotels);
+    setPendingRooms(rooms);
+    setLoading(false);
+  };
+
+
   useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      const [hotels, rooms] = await Promise.all([
-        getPendingHotels(),
-        getPendingRooms(),
-      ]);
-      setPendingHotels(hotels);
-      setPendingRooms(rooms);
-      setLoading(false);
-    }
-    fetchData();
+    loadData();
   }, []);
 
   const handleHotelAction = (hotelId: string, action: 'approve' | 'reject') => {
     startTransition(async () => {
       await updateHotelStatus(hotelId, action === 'approve' ? 'approved' : 'rejected');
-      setPendingHotels((prev) => prev.filter((h) => h.id !== hotelId));
+      await loadData(); // Refresh data
       toast({
         title: `Hotel ${action}d`,
         description: `The hotel has been successfully ${action}d.`,
@@ -61,7 +63,7 @@ export function AdminDashboard() {
   const handleRoomAction = (roomId: string, action: 'approve' | 'reject') => {
      startTransition(async () => {
       await updateRoomStatus(roomId, action === 'approve' ? 'approved' : 'rejected');
-      setPendingRooms((prev) => prev.filter((r) => r.id !== roomId));
+      await loadData(); // Refresh data
       toast({
         title: `Room ${action}d`,
         description: `The room has been successfully ${action}d.`,

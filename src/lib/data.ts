@@ -99,7 +99,7 @@ export const getPendingHotels = async (): Promise<Hotel[]> => {
     const pendingHotels = snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
     
     // Enrich with owner info
-    return Promise.all(pendingHotels.map(async hotel => {
+    const enrichedHotels = await Promise.all(pendingHotels.map(async hotel => {
         const owner = await getUserById(hotel.ownerId);
         return {
             ...hotel,
@@ -107,6 +107,7 @@ export const getPendingHotels = async (): Promise<Hotel[]> => {
             ownerEmail: owner?.email || 'N/A'
         };
     }));
+    return enrichedHotels;
 };
 
 
@@ -115,13 +116,14 @@ export const getPendingRooms = async (): Promise<Room[]> => {
     const snapshot = await getDocs(q);
     const pendingRooms = snapshot.docs.map(doc => fromFirestore<Room>(doc));
 
-    return Promise.all(pendingRooms.map(async room => {
+    const enrichedRooms = await Promise.all(pendingRooms.map(async room => {
         const hotel = await getHotelById(room.hotelId);
         return {
             ...room,
             hotelName: hotel?.name || 'Unknown Hotel'
         };
     }));
+    return enrichedRooms;
 };
 
 export const getHotelById = async (id: string): Promise<Hotel | undefined> => {
