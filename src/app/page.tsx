@@ -7,7 +7,7 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { HotelCard } from '@/components/hotel-card';
 import { getApprovedHotels } from '@/lib/data';
-import { Search, Calendar, Users, Star, MapPin, Building2, BedDouble } from 'lucide-react';
+import { Search, Calendar, Users, Star, MapPin, Building2, BedDouble, ShieldCheck, LifeBuoy, CreditCard } from 'lucide-react';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 
 export default async function HomePage() {
@@ -29,16 +29,16 @@ export default async function HomePage() {
           />
           <div className="relative z-20 text-center p-4">
             <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tight drop-shadow-lg">
-              Find Your Next Stay
+              Find your next getaway
             </h1>
             <p className="mt-4 text-lg md:text-xl max-w-2xl mx-auto drop-shadow-md">
-              Unforgettable hotels at unbeatable prices. Your dream vacation is just a click away.
+              Discover the best hotels and resorts for your next adventure.
             </p>
             <Card className="mt-8 max-w-4xl mx-auto p-4 md:p-6 bg-background/80 backdrop-blur-sm border-none shadow-2xl">
               <form className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-10 gap-4 items-center">
                 <div className="relative md:col-span-4 lg:col-span-3">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input placeholder="Where are you going?" className="pl-10" />
+                  <Input placeholder="Destination" className="pl-10" />
                 </div>
                 <div className="md:col-span-4 lg:col-span-4">
                   <DateRangePicker />
@@ -58,60 +58,97 @@ export default async function HomePage() {
 
         <section id="how-it-works" className="py-24 sm:py-32">
           <div className="container mx-auto px-4">
-            <h2 className="text-4xl font-headline text-center font-bold tracking-tight">How It Works</h2>
+            <h2 className="text-4xl font-headline text-center font-bold tracking-tight">How it works</h2>
             <p className="mt-4 text-lg text-muted-foreground text-center max-w-2xl mx-auto">
-              Booking your perfect hotel is as easy as 1, 2, 3.
+              Find and book your perfect stay in just a few simple steps.
             </p>
             <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-              <Card className="transform hover:scale-105 transition-transform duration-300">
-                <CardHeader>
-                  <div className="mx-auto bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center">
+              <div className="flex flex-col items-center">
+                <div className="bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center">
                     <Search className="h-8 w-8" />
-                  </div>
-                  <CardTitle className="font-headline mt-4">1. Search</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Find the perfect hotel by searching for your destination and travel dates.</p>
-                </CardContent>
-              </Card>
-              <Card className="transform hover:scale-105 transition-transform duration-300">
-                <CardHeader>
-                  <div className="mx-auto bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center">
+                </div>
+                <h3 className="mt-6 text-2xl font-headline font-bold">Search</h3>
+                <p className="mt-2 text-muted-foreground">
+                    Enter your destination, travel dates, and number of guests to find the perfect hotel.
+                </p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center">
                     <BedDouble className="h-8 w-8" />
-                  </div>
-                  <CardTitle className="font-headline mt-4">2. Book</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Select your desired room and securely complete your booking in minutes.</p>
-                </CardContent>
-              </Card>
-              <Card className="transform hover:scale-105 transition-transform duration-300">
-                <CardHeader>
-                  <div className="mx-auto bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center">
+                </div>
+                <h3 className="mt-6 text-2xl font-headline font-bold">Select</h3>
+                <p className="mt-2 text-muted-foreground">
+                    Browse through a wide selection of hotels and choose the one that suits your needs.
+                </p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center">
                     <Star className="h-8 w-8" />
-                  </div>
-                  <CardTitle className="font-headline mt-4">3. Enjoy</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Pack your bags and get ready for an unforgettable stay at your chosen hotel.</p>
-                </CardContent>
-              </Card>
+                </div>
+                <h3 className="mt-6 text-2xl font-headline font-bold">Book</h3>
+                <p className="mt-2 text-muted-foreground">
+                    Securely book your room and receive an instant confirmation for a hassle-free experience.
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
         <section id="featured" className="py-24 sm:py-32 bg-secondary">
           <div className="container mx-auto px-4">
-            <h2 className="text-4xl font-headline text-center font-bold tracking-tight">Featured Hotels</h2>
+            <h2 className="text-4xl font-headline text-center font-bold tracking-tight">Featured Stays</h2>
             <p className="mt-4 text-lg text-muted-foreground text-center max-w-2xl mx-auto">
               Handpicked hotels that promise an exceptional experience.
             </p>
             <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredHotels.map((hotel) => (
+              {featuredHotels.slice(0, 3).map((hotel) => (
                 <Link href={`/hotel/${hotel.id}`} key={hotel.id}>
                     <HotelCard hotel={hotel} />
                 </Link>
               ))}
+            </div>
+             <div className="mt-16 text-center">
+                <Button asChild size="lg">
+                    <Link href="#">View All Hotels</Link>
+                </Button>
+            </div>
+          </div>
+        </section>
+
+        <section id="why-choose-us" className="py-24 sm:py-32">
+          <div className="container mx-auto px-4">
+            <h2 className="text-4xl font-headline text-center font-bold tracking-tight">Why Choose Us?</h2>
+            <p className="mt-4 text-lg text-muted-foreground text-center max-w-2xl mx-auto">
+                We provide the best services for our customers.
+            </p>
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              <div className="flex flex-col items-center">
+                <div className="bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center">
+                    <ShieldCheck className="h-8 w-8" />
+                </div>
+                <h3 className="mt-6 text-2xl font-headline font-bold">Best Price Guarantee</h3>
+                <p className="mt-2 text-muted-foreground">
+                    We offer the most competitive prices in the market to ensure you get the best value.
+                </p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center">
+                    <LifeBuoy className="h-8 w-8" />
+                </div>
+                <h3 className="mt-6 text-2xl font-headline font-bold">24/7 Support</h3>
+                <p className="mt-2 text-muted-foreground">
+                    Our dedicated support team is available around the clock to assist you with any queries.
+                </p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="bg-primary text-primary-foreground rounded-full h-16 w-16 flex items-center justify-center">
+                    <CreditCard className="h-8 w-8" />
+                </div>
+                <h3 className="mt-6 text-2xl font-headline font-bold">Secure Payments</h3>
+                <p className="mt-2 text-muted-foreground">
+                    We use a secure payment system to protect your personal and financial information.
+                </p>
+              </div>
             </div>
           </div>
         </section>

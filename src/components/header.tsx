@@ -17,14 +17,16 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
-        <Link href="/" className="mr-6 flex items-center space-x-2">
+        <Link href="/" className="mr-auto flex items-center space-x-2">
           <Building2 className="h-6 w-6 text-primary" />
-          <span className="font-bold font-headline text-lg">Lodgify Lite</span>
+          <span className="font-bold font-headline text-lg">Lodgify</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          <Link href="/" className="transition-colors hover:text-primary">Home</Link>
+          <Link href="/" className="transition-colors hover:text-primary">Stays</Link>
+          <Link href="#" className="transition-colors hover:text-primary">Experiences</Link>
+           <Link href="#" className="transition-colors hover:text-primary">About</Link>
           {user?.role === 'owner' && <Link href="/owner" className="transition-colors hover:text-primary">Owner Dashboard</Link>}
           {user?.role === 'admin' && <Link href="/admin" className="transition-colors hover:text-primary">Admin Dashboard</Link>}
         </nav>
@@ -53,20 +55,13 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <nav className="flex items-center gap-2">
-                 <Button asChild variant="ghost">
-                    <Link href="/login">
-                        <LogIn />
-                        Login
-                    </Link>
-                 </Button>
-                 <Button asChild>
+            <div className="hidden md:flex items-center space-x-4">
+                <Button asChild>
                     <Link href="/signup">
-                        <UserPlus />
-                        Sign Up
+                        Sign In
                     </Link>
                  </Button>
-            </nav>
+            </div>
           )}
         </div>
       </div>
