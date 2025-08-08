@@ -18,12 +18,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    // This is required to allow requests from the Supabase Studio environment.
-    allowedDevOrigins: [
-        'https://6000-firebase-studio-1754636616361.cluster-ikxjzjhlifcwuroomfkjrx437g.cloudworkstations.dev'
-    ]
-  }
 };
 
 export default nextConfig;
