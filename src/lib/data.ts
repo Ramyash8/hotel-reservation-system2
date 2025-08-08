@@ -3,21 +3,29 @@ import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp } from 'firebase/firestore';
 import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom } from './types';
 
+// Collection references
+const usersCol = collection(db, "users");
+const hotelsCol = collection(db, "hotels");
+const roomsCol = collection(db, "rooms");
+
 // Helper to convert Firestore doc to our types
 const fromFirestore = <T>(docSnap: any): T => {
     const data = docSnap.data();
-    const result = {
+    if (!data) return docSnap.id; 
+
+    const result: { [key: string]: any } = {
         id: docSnap.id,
         ...data,
-    } as any;
+    };
 
-    if (data.createdAt instanceof Timestamp) {
+    // Convert Timestamps to Dates, only if they exist
+    if (data.createdAt && data.createdAt instanceof Timestamp) {
         result.createdAt = data.createdAt.toDate();
     }
-    if (data.fromDate instanceof Timestamp) {
+    if (data.fromDate && data.fromDate instanceof Timestamp) {
         result.fromDate = data.fromDate.toDate();
     }
-    if (data.toDate instanceof Timestamp) {
+    if (data.toDate && data.toDate instanceof Timestamp) {
         result.toDate = data.toDate.toDate();
     }
 
