@@ -1,12 +1,12 @@
-import type { User, Hotel, Room, Booking, NewHotel } from './types';
+import type { User, Hotel, Room, Booking, NewHotel, NewUser } from './types';
 
 // Using a Map to make data mutable for admin actions demo
 const users: Map<string, User> = new Map([
-  ['user-1', { id: 'user-1', name: 'John Doe', email: 'john.doe@example.com', role: 'user', createdAt: new Date() }],
-  ['user-2', { id: 'user-2', name: 'Jane Smith', email: 'jane.smith@example.com', role: 'owner', createdAt: new Date() }],
-  ['user-3', { id: 'user-3', name: 'Admin User', email: 'admin@lodgify.lite', role: 'admin', createdAt: new Date() }],
-  ['user-4', { id: 'user-4', name: 'Peter Jones', email: 'peter.jones@example.com', role: 'owner', createdAt: new Date() }],
-  ['user-5', { id: 'user-5', name: 'Mary Williams', email: 'mary.williams@example.com', role: 'user', createdAt: new Date() }],
+  ['user-1', { id: 'user-1', name: 'John Doe', email: 'john.doe@example.com', password: 'password123', role: 'user', createdAt: new Date() }],
+  ['user-2', { id: 'user-2', name: 'Jane Smith', email: 'jane.smith@example.com', password: 'password123', role: 'owner', createdAt: new Date() }],
+  ['user-3', { id: 'user-3', name: 'Admin User', email: 'admin@lodgify.lite', password: 'adminpass', role: 'admin', createdAt: new Date() }],
+  ['user-4', { id: 'user-4', name: 'Peter Jones', email: 'peter.jones@example.com', password: 'password123', role: 'owner', createdAt: new Date() }],
+  ['user-5', { id: 'user-5', name: 'Mary Williams', email: 'mary.williams@example.com', password: 'password123', role: 'user', createdAt: new Date() }],
 ]);
 
 const hotels: Map<string, Hotel> = new Map([
@@ -37,6 +37,41 @@ const bookings: Map<string, Booking> = new Map([
     ['booking-3', { id: 'booking-3', userId: 'user-1', roomId: 'room-7', hotelId: 'hotel-4', fromDate: new Date('2024-10-20'), toDate: new Date('2024-10-25'), totalPrice: 2250, status: 'cancelled', createdAt: new Date() }],
     ['booking-4', { id: 'booking-4', userId: 'user-5', roomId: 'room-9', hotelId: 'hotel-6', fromDate: new Date('2024-11-11'), toDate: new Date('2024-11-18'), totalPrice: 1960, status: 'confirmed', createdAt: new Date() }],
 ]);
+
+// Auth functions
+export const authenticateUser = async (email: string): Promise<User | null> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    for (const user of users.values()) {
+        if (user.email === email) {
+            // NOTE: In a real app, you would compare hashed passwords.
+            // This is a mock, so we are not comparing passwords.
+            return user;
+        }
+    }
+    return null;
+}
+
+export const createUser = async (userData: NewUser): Promise<User> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    for (const user of users.values()) {
+        if (user.email === userData.email) {
+            throw new Error("User with this email already exists");
+        }
+    }
+    const newUser: User = {
+        id: `user-${Date.now()}`,
+        ...userData,
+        createdAt: new Date(),
+    };
+    users.set(newUser.id, newUser);
+    return newUser;
+};
+
+export const getUserById = async (id: string): Promise<User | undefined> => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return users.get(id);
+};
+
 
 // API-like access patterns
 export const getApprovedHotels = async (): Promise<Hotel[]> => {

@@ -2,9 +2,14 @@ export type User = {
   id: string;
   name: string;
   email: string;
+  // In a real app, you would not store passwords in plaintext.
+  // This is for demonstration purposes only.
+  password?: string;
   role: 'user' | 'owner' | 'admin';
   createdAt: Date;
 };
+
+export type NewUser = Omit<User, 'id' | 'createdAt'>;
 
 export type Hotel = {
   id: string;
