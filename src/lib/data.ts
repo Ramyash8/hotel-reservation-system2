@@ -24,7 +24,6 @@ const fromFirestore = <T>(docSnap: any): T => {
 
 // Auth functions
 export const authenticateUser = async (email: string, password: string): Promise<User | null> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
     const q = query(usersCol, where("email", "==", email));
     const querySnapshot = await getDocs(q);
 
@@ -44,8 +43,6 @@ export const authenticateUser = async (email: string, password: string): Promise
 }
 
 export const createUser = async (userData: NewUser): Promise<User> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
     const q = query(usersCol, where("email", "==", userData.email));
     const querySnapshot = await getDocs(q);
 
@@ -63,7 +60,6 @@ export const createUser = async (userData: NewUser): Promise<User> => {
 };
 
 export const getUserById = async (id: string): Promise<User | undefined> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
     const docRef = doc(db, "users", id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
@@ -75,14 +71,12 @@ export const getUserById = async (id: string): Promise<User | undefined> => {
 
 // API-like access patterns
 export const getApprovedHotels = async (): Promise<Hotel[]> => {
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
     const q = query(hotelsCol, where("status", "==", "approved"));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
 };
 
 export const searchHotels = async (criteria: HotelSearchCriteria): Promise<Hotel[]> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
     // Firestore doesn't support case-insensitive "contains" queries natively.
     // For a real app, use a third-party search service like Algolia or a more complex query structure.
     // Here, we fetch all and filter client-side, which is not scalable.
@@ -100,7 +94,6 @@ export const searchHotels = async (criteria: HotelSearchCriteria): Promise<Hotel
 };
 
 export const getPendingHotels = async (): Promise<Hotel[]> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
     const q = query(hotelsCol, where("status", "==", "pending"));
     const snapshot = await getDocs(q);
     const pendingHotels = snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
@@ -118,7 +111,6 @@ export const getPendingHotels = async (): Promise<Hotel[]> => {
 
 
 export const getPendingRooms = async (): Promise<Room[]> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
     const q = query(roomsCol, where("status", "==", "pending"));
     const snapshot = await getDocs(q);
     const pendingRooms = snapshot.docs.map(doc => fromFirestore<Room>(doc));
@@ -133,7 +125,6 @@ export const getPendingRooms = async (): Promise<Room[]> => {
 };
 
 export const getHotelById = async (id: string): Promise<Hotel | undefined> => {
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
     const docRef = doc(db, "hotels", id);
     const docSnap = await getDoc(docRef);
     if(docSnap.exists()){
@@ -143,14 +134,12 @@ export const getHotelById = async (id: string): Promise<Hotel | undefined> => {
 };
 
 export const getRoomsByHotelId = async (hotelId: string): Promise<Room[]> => {
-    await new Promise(resolve => setTimeout(resolve, 400)); // Simulate network delay
     const q = query(roomsCol, where("hotelId", "==", hotelId), where("status", "==", "approved"));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => fromFirestore<Room>(doc));
 };
 
 export const getRoomById = async (id: string): Promise<Room | undefined> => {
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
     const docRef = doc(db, "rooms", id);
     const docSnap = await getDoc(docRef);
      if(docSnap.exists()){
@@ -160,14 +149,12 @@ export const getRoomById = async (id: string): Promise<Room | undefined> => {
 };
 
 export const updateHotelStatus = async (id: string, status: 'approved' | 'rejected'): Promise<Hotel | undefined> => {
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network action
     const docRef = doc(db, "hotels", id);
     await updateDoc(docRef, { status });
     return getHotelById(id);
 }
 
 export const createHotel = async (hotelData: NewHotel): Promise<Hotel> => {
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network action
     const newHotelRef = await addDoc(hotelsCol, {
         ...hotelData,
         status: 'pending',
@@ -179,21 +166,18 @@ export const createHotel = async (hotelData: NewHotel): Promise<Hotel> => {
 }
 
 export const updateRoomStatus = async (id: string, status: 'approved' | 'rejected'): Promise<Room | undefined> => {
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network action
     const docRef = doc(db, "rooms", id);
     await updateDoc(docRef, { status });
     return getRoomById(id);
 }
 
 export const getHotelsByOwner = async (ownerId: string): Promise<Hotel[]> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
     const q = query(hotelsCol, where("ownerId", "==", ownerId));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
 }
 
 export const getRoomsByOwner = async (ownerId: string): Promise<Room[]> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
     const ownerHotels = await getHotelsByOwner(ownerId);
     if (ownerHotels.length === 0) return [];
     
@@ -205,7 +189,6 @@ export const getRoomsByOwner = async (ownerId: string): Promise<Room[]> => {
 }
 
 export const createRoom = async (roomData: NewRoom): Promise<Room> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
     const newRoomRef = await addDoc(roomsCol, {
         ...roomData,
         images: ['https://placehold.co/600x400.png'], // default image
