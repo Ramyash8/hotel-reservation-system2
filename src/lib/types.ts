@@ -1,4 +1,6 @@
 
+import { Timestamp } from 'firebase/firestore';
+
 export type User = {
   id: string;
   name: string;
@@ -7,7 +9,7 @@ export type User = {
   // This is for demonstration purposes only.
   password?: string;
   role: 'user' | 'owner' | 'admin';
-  createdAt: Date;
+  createdAt: Date | Timestamp;
 };
 
 export type NewUser = Omit<User, 'id' | 'createdAt'>;
@@ -21,7 +23,7 @@ export type Hotel = {
   status: 'pending' | 'approved' | 'rejected';
   coverImage: string;
   category?: 'Premium' | 'Eco-Friendly' | 'Ski Resort' | 'Historic' | 'Boutique';
-  createdAt: Date;
+  createdAt: Date | Timestamp;
   ownerName?: string; // For admin view
   ownerEmail?: string; // For admin view
 };
@@ -43,7 +45,7 @@ export type Room = {
   images: string[];
   capacity: number;
   status: 'pending' | 'approved' | 'rejected';
-  createdAt: Date;
+  createdAt: Date | Timestamp;
   hotelName?: string; // For admin view
 };
 
@@ -54,9 +56,9 @@ export type Booking = {
   userId: string;
   roomId: string;
   hotelId:string;
-  fromDate: Date;
-  toDate: Date;
+  fromDate: Date | Timestamp;
+  toDate: Date | Timestamp;
   totalPrice: number;
   status: 'confirmed' | 'cancelled';
-  createdAt: Date;
+  createdAt: Date | Timestamp;
 };
