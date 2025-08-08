@@ -82,7 +82,7 @@ export const getApprovedHotels = async (): Promise<Hotel[]> => {
 
 export const searchHotels = async (criteria: HotelSearchCriteria): Promise<Hotel[]> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    const approvedHotels = Array.from(hotels.values()).filter(h => h.status === 'approved');
+    let approvedHotels = Array.from(hotels.values()).filter(h => h.status === 'approved');
 
     if (!criteria.destination) {
         return approvedHotels;
