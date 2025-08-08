@@ -31,7 +31,9 @@ export function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-4">
-            <Button variant="ghost" className="hidden md:inline-flex">Become a host</Button>
+            <Link href="/signup">
+              <Button variant="ghost" className="hidden md:inline-flex">Become a host</Button>
+            </Link>
             <Button variant="ghost" size="icon" className="hidden md:inline-flex">
                 <Globe className="h-5 w-5"/>
             </Button>
