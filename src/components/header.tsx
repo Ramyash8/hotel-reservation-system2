@@ -43,13 +43,13 @@ export function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuItem>
-                    <User className="mr-2" />
+                    <User className="mr-2 h-4 w-4" />
                     Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem>Bookings</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2" />
+                    <LogOut className="mr-2 h-4 w-4" />
                     Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -59,7 +59,7 @@ export function Header() {
                 <Button variant="ghost" asChild>
                   <Link href="/login">
                     <LogIn className="mr-2 h-4 w-4" />
-                    Login
+                    Sign In
                   </Link>
                 </Button>
                 <Button asChild>
