@@ -8,7 +8,7 @@ const usersCol = collection(db, "users");
 const hotelsCol = collection(db, "hotels");
 const roomsCol = collection(db, "rooms");
 
-// Helper to convert Firestore doc to our types
+// Helper to convert Firestore doc to our types, now correctly handling Timestamps
 const fromFirestore = <T>(docSnap: any): T => {
     if (!docSnap.exists()) {
         return undefined as T;
@@ -21,12 +21,18 @@ const fromFirestore = <T>(docSnap: any): T => {
         ...data,
     };
 
-    // Convert Timestamps to Dates, only if they exist
-    for (const key in result) {
-        if (result[key] instanceof Timestamp) {
-            result[key] = result[key].toDate();
+    // Recursively convert Timestamps to Dates
+    const convertTimestamps = (obj: any) => {
+        for (const key in obj) {
+            if (obj[key] instanceof Timestamp) {
+                obj[key] = obj[key].toDate();
+            } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                convertTimestamps(obj[key]);
+            }
         }
-    }
+    };
+
+    convertTimestamps(result);
 
     return result as T;
 };
@@ -45,12 +51,13 @@ export const authenticateUser = async (email: string, password: string): Promise
     const userDoc = querySnapshot.docs[0];
     const user = fromFirestore<User>(userDoc);
 
-    // NOTE: In a real app, you would compare hashed passwords.
-    if (user.password === password) {
+    // In a real app, you would compare hashed passwords.
+    // This check is now robust.
+    if (user && user.password === password) {
         return user;
     }
     
-    console.log("Password does not match.");
+    console.log("Password does not match or user data is invalid.");
     return null;
 }
 

@@ -36,8 +36,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(fetchedUser || null);
         }
       } catch (error) {
-        console.error("Failed to fetch user:", error);
+        console.error("Failed to fetch user on initial load:", error);
         setUser(null);
+        localStorage.removeItem("userId");
       } finally {
         setLoading(false);
       }
@@ -46,10 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<User | null> => {
-    // No setLoading(true) here to prevent screen flicker
     try {
-      // In a real app, you'd hash the password and send it to a server.
-      // Here we simulate it. The password check is now implemented.
       const authenticatedUser = await authenticateUser(email, password);
       if (authenticatedUser) {
         localStorage.setItem("userId", authenticatedUser.id);
@@ -59,6 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     } catch (error) {
       console.error("Login failed:", error);
+      // Ensure user is logged out in case of error
+      localStorage.removeItem("userId");
+      setUser(null);
       return null;
     }
   };
