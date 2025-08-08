@@ -57,7 +57,7 @@ export function Header() {
           ) : (
             <div className="hidden md:flex items-center space-x-4">
                 <Button asChild>
-                    <Link href="/signup">
+                    <Link href="/login">
                         Sign In
                     </Link>
                  </Button>
