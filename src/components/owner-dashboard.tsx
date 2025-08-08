@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AddHotelForm } from "./add-hotel-form";
 
 export function OwnerDashboard() {
   return (
@@ -21,7 +22,7 @@ export function OwnerDashboard() {
         <TabsContent value="hotels">
              <Card>
                 <CardContent className="p-6">
-                    <p>Hotel management interface will be here.</p>
+                    <AddHotelForm />
                 </CardContent>
             </Card>
         </TabsContent>

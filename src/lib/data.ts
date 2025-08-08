@@ -1,4 +1,4 @@
-import type { User, Hotel, Room, Booking } from './types';
+import type { User, Hotel, Room, Booking, NewHotel } from './types';
 
 // Using a Map to make data mutable for admin actions demo
 const users: Map<string, User> = new Map([
@@ -77,6 +77,19 @@ export const updateHotelStatus = async (id: string, status: 'approved' | 'reject
         hotels.set(id, hotel);
     }
     return hotel;
+}
+
+export const createHotel = async (hotelData: NewHotel): Promise<Hotel> => {
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network action
+    const newHotel: Hotel = {
+        id: `hotel-${Date.now()}`,
+        ...hotelData,
+        status: 'pending',
+        coverImage: 'https://placehold.co/1200x800.png',
+        createdAt: new Date(),
+    };
+    hotels.set(newHotel.id, newHotel);
+    return newHotel;
 }
 
 export const updateRoomStatus = async (id: string, status: 'approved' | 'rejected'): Promise<Room | undefined> => {

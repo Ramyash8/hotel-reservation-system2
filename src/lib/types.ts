@@ -17,6 +17,8 @@ export type Hotel = {
   createdAt: Date;
 };
 
+export type NewHotel = Omit<Hotel, 'id' | 'status' | 'coverImage' | 'createdAt'>;
+
 export type Room = {
   id: string;
   title: string;
