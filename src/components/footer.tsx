@@ -24,7 +24,7 @@ export function Footer() {
             <ul className="mt-4 space-y-2">
               <li><Link href="/" className="text-sm hover:text-primary transition-colors">Home</Link></li>
               <li><Link href="/search" className="text-sm hover:text-primary transition-colors">Featured Hotels</Link></li>
-              <li><Link href="/admin" className="text-sm hover:text-primary transition-colors">Admin Panel</Link></li>
+              <li><Link href="/admin" className="text-sm hover:text-primary transition-colors">Admin Dashboard</Link></li>
             </ul>
           </div>
           <div>
