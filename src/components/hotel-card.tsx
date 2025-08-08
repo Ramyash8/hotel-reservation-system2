@@ -3,12 +3,46 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import type { Hotel } from '@/lib/types';
 import { MapPin, Star } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface HotelCardProps {
   hotel: Hotel;
+  variant?: 'default' | 'compact';
 }
 
-export function HotelCard({ hotel }: HotelCardProps) {
+export function HotelCard({ hotel, variant = 'default' }: HotelCardProps) {
+
+  if (variant === 'compact') {
+    return (
+      <div className="group cursor-pointer">
+        <div className="relative aspect-square w-full overflow-hidden rounded-xl">
+           <Image
+              src={hotel.coverImage}
+              alt={`Exterior of ${hotel.name}`}
+              layout="fill"
+              objectFit="cover"
+              data-ai-hint={(hotel as any)['data-ai-hint'] || 'hotel exterior'}
+              className="group-hover:scale-105 transition-transform duration-300"
+            />
+             {hotel.category && (
+              <Badge className="absolute top-2 right-2" variant="secondary">{hotel.category}</Badge>
+            )}
+        </div>
+        <div className="mt-2">
+          <div className="flex justify-between items-start">
+             <h3 className="font-bold text-sm truncate pr-2">{hotel.name}</h3>
+             <div className="flex items-center gap-1 shrink-0">
+                <Star className="w-4 h-4" />
+                <span className="text-sm">4.8</span>
+             </div>
+          </div>
+          <p className="text-sm text-muted-foreground">{hotel.location}</p>
+          <p className="text-sm mt-1"><span className="font-bold">$250</span> / night</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <Card className="overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className="relative h-56 w-full">

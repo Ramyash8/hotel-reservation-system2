@@ -3,11 +3,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { DateRangePicker } from '@/components/ui/date-range-picker';
-import { MapPin, Users, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 
@@ -15,10 +12,9 @@ export function SearchForm() {
     const router = useRouter();
     const [destination, setDestination] = useState('');
     const [guests, setGuests] = useState('');
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: new Date(),
-        to: new Date(new Date().setDate(new Date().getDate() + 7)),
-    });
+    const [checkIn, setCheckIn] = useState('');
+    const [checkOut, setCheckOut] = useState('');
+
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -26,11 +22,11 @@ export function SearchForm() {
         if (destination) {
             params.set('destination', destination);
         }
-        if (dateRange?.from) {
-            params.set('from', format(dateRange.from, 'yyyy-MM-dd'));
+        if (checkIn) {
+            params.set('from', checkIn);
         }
-        if (dateRange?.to) {
-            params.set('to', format(dateRange.to, 'yyyy-MM-dd'));
+        if (checkOut) {
+            params.set('to', checkOut);
         }
         if (guests) {
             params.set('guests', guests);
@@ -39,35 +35,50 @@ export function SearchForm() {
     };
 
     return (
-        <Card className="mt-8 max-w-4xl mx-auto p-4 md:p-6 bg-background/80 backdrop-blur-sm border-none shadow-2xl">
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-10 gap-4 items-center">
-                <div className="relative md:col-span-4 lg:col-span-3">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                        placeholder="Destination"
-                        className="pl-10"
-                        value={destination}
-                        onChange={(e) => setDestination(e.target.value)}
+        <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
+            <div className="flex items-center border rounded-full shadow-md h-16 p-2 bg-background">
+                <input
+                    type="text"
+                    placeholder="Search destinations"
+                    className="flex-grow px-4 text-sm outline-none bg-transparent"
+                    value={destination}
+                    onChange={(e) => setDestination(e.target.value)}
+                />
+                <div className="flex items-center">
+                   <div className="border-l h-8 mx-2"></div>
+                   <input
+                        type="text"
+                        onFocus={(e) => e.target.type = 'date'}
+                        onBlur={(e) => e.target.type = 'text'}
+                        placeholder="Check in"
+                        className="w-28 px-2 text-sm outline-none bg-transparent text-center"
+                        value={checkIn}
+                        onChange={(e) => setCheckIn(e.target.value)}
                     />
-                </div>
-                <div className="md:col-span-4 lg:col-span-4">
-                    <DateRangePicker onSelect={setDateRange} initialDateRange={dateRange}/>
-                </div>
-                <div className="relative md:col-span-2 lg:col-span-2">
-                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                        type="number"
-                        placeholder="Guests"
-                        className="pl-10"
+                    <div className="border-l h-8 mx-2"></div>
+                     <input
+                        type="text"
+                        onFocus={(e) => e.target.type = 'date'}
+                        onBlur={(e) => e.target.type = 'text'}
+                        placeholder="Check out"
+                        className="w-28 px-2 text-sm outline-none bg-transparent text-center"
+                        value={checkOut}
+                        onChange={(e) => setCheckOut(e.target.value)}
+                    />
+                    <div className="border-l h-8 mx-2"></div>
+                    <input
+                        type="text"
+                        placeholder="Add guests"
+                        className="w-28 px-2 text-sm outline-none bg-transparent"
                         value={guests}
                         onChange={(e) => setGuests(e.target.value)}
                     />
                 </div>
-                <Button type="submit" className="w-full md:col-span-2 lg:col-span-1 bg-accent hover:bg-accent/90 text-accent-foreground">
+                <Button type="submit" size="icon" className="rounded-full bg-primary h-12 w-12 shrink-0">
                     <Search className="h-5 w-5" />
                     <span className="sr-only">Search</span>
                 </Button>
-            </form>
-        </Card>
+            </div>
+        </form>
     );
 }
