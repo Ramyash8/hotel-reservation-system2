@@ -1,4 +1,4 @@
-import type { User, Hotel, Room, Booking, NewHotel, NewUser } from './types';
+import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria } from './types';
 
 // Using a Map to make data mutable for admin actions demo
 const users: Map<string, User> = new Map([
@@ -77,6 +77,22 @@ export const getUserById = async (id: string): Promise<User | undefined> => {
 export const getApprovedHotels = async (): Promise<Hotel[]> => {
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
     return Array.from(hotels.values()).filter(h => h.status === 'approved');
+};
+
+export const searchHotels = async (criteria: HotelSearchCriteria): Promise<Hotel[]> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const approvedHotels = Array.from(hotels.values()).filter(h => h.status === 'approved');
+
+    if (!criteria.destination) {
+        return approvedHotels;
+    }
+
+    const searchLower = criteria.destination.toLowerCase();
+
+    return approvedHotels.filter(hotel =>
+        hotel.name.toLowerCase().includes(searchLower) ||
+        hotel.location.toLowerCase().includes(searchLower)
+    );
 };
 
 export const getPendingHotels = async (): Promise<Hotel[]> => {

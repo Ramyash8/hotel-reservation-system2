@@ -25,6 +25,12 @@ export type Hotel = {
 
 export type NewHotel = Omit<Hotel, 'id' | 'status' | 'coverImage' | 'createdAt'>;
 
+export type HotelSearchCriteria = {
+  destination?: string;
+  dateRange?: { from: Date; to: Date };
+  guests?: number;
+}
+
 export type Room = {
   id: string;
   title: string;
@@ -41,7 +47,7 @@ export type Booking = {
   id: string;
   userId: string;
   roomId: string;
-  hotelId: string;
+  hotelId:string;
   fromDate: Date;
   toDate: Date;
   totalPrice: number;

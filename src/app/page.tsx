@@ -1,14 +1,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { HotelCard } from '@/components/hotel-card';
 import { getApprovedHotels } from '@/lib/data';
-import { Search, Calendar, Users, Star, MapPin, Building2, BedDouble, ShieldCheck, LifeBuoy, CreditCard, Book, PartyPopper } from 'lucide-react';
-import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { Search, Book, PartyPopper, ShieldCheck, LifeBuoy, CreditCard } from 'lucide-react';
+import { SearchForm } from '@/components/search-form';
 
 export default async function HomePage() {
   const featuredHotels = await getApprovedHotels();
@@ -34,25 +32,7 @@ export default async function HomePage() {
             <p className="mt-4 text-lg md:text-xl max-w-2xl mx-auto drop-shadow-md">
               Discover the best hotels and resorts for your next adventure.
             </p>
-            <Card className="mt-8 max-w-4xl mx-auto p-4 md:p-6 bg-background/80 backdrop-blur-sm border-none shadow-2xl">
-              <form className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-10 gap-4 items-center">
-                <div className="relative md:col-span-4 lg:col-span-3">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input placeholder="Destination" className="pl-10" />
-                </div>
-                <div className="md:col-span-4 lg:col-span-4">
-                  <DateRangePicker />
-                </div>
-                <div className="relative md:col-span-2 lg:col-span-2">
-                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input type="number" placeholder="Guests" className="pl-10" />
-                </div>
-                <Button className="w-full md:col-span-2 lg:col-span-1 bg-accent hover:bg-accent/90 text-accent-foreground">
-                  <Search className="h-5 w-5" />
-                  <span className="sr-only">Search</span>
-                </Button>
-              </form>
-            </Card>
+            <SearchForm />
           </div>
         </section>
 
@@ -109,7 +89,7 @@ export default async function HomePage() {
             </div>
              <div className="mt-16 text-center">
                 <Button asChild size="lg">
-                    <Link href="#">View All Hotels</Link>
+                    <Link href="/search">View All Hotels</Link>
                 </Button>
             </div>
           </div>

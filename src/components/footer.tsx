@@ -22,8 +22,8 @@ export function Footer() {
           <div>
             <h3 className="font-headline text-lg font-semibold">Quick Links</h3>
             <ul className="mt-4 space-y-2">
-              <li><Link href="#" className="text-sm hover:text-primary transition-colors">Home</Link></li>
-              <li><Link href="#featured" className="text-sm hover:text-primary transition-colors">Featured Hotels</Link></li>
+              <li><Link href="/" className="text-sm hover:text-primary transition-colors">Home</Link></li>
+              <li><Link href="/search" className="text-sm hover:text-primary transition-colors">Featured Hotels</Link></li>
               <li><Link href="/admin" className="text-sm hover:text-primary transition-colors">Admin Panel</Link></li>
             </ul>
           </div>
