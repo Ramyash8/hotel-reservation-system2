@@ -3,22 +3,25 @@ import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp } from 'firebase/firestore';
 import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom } from './types';
 
-const usersCol = collection(db, 'users');
-const hotelsCol = collection(db, 'hotels');
-const roomsCol = collection(db, 'rooms');
-const bookingsCol = collection(db, 'bookings');
-
 // Helper to convert Firestore doc to our types
 const fromFirestore = <T>(docSnap: any): T => {
     const data = docSnap.data();
-    return {
+    const result = {
         id: docSnap.id,
         ...data,
-        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
-        // Convert other Timestamps if necessary
-        fromDate: data.fromDate instanceof Timestamp ? data.fromDate.toDate() : undefined,
-        toDate: data.toDate instanceof Timestamp ? data.toDate.toDate() : undefined,
-    } as T;
+    } as any;
+
+    if (data.createdAt instanceof Timestamp) {
+        result.createdAt = data.createdAt.toDate();
+    }
+    if (data.fromDate instanceof Timestamp) {
+        result.fromDate = data.fromDate.toDate();
+    }
+    if (data.toDate instanceof Timestamp) {
+        result.toDate = data.toDate.toDate();
+    }
+
+    return result as T;
 };
 
 
@@ -28,6 +31,7 @@ export const authenticateUser = async (email: string, password: string): Promise
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
+        console.log("No user found with that email.");
         return null;
     }
     
@@ -38,7 +42,8 @@ export const authenticateUser = async (email: string, password: string): Promise
     if (user.password === password) {
         return user;
     }
-
+    
+    console.log("Password does not match.");
     return null;
 }
 
@@ -60,12 +65,17 @@ export const createUser = async (userData: NewUser): Promise<User> => {
 };
 
 export const getUserById = async (id: string): Promise<User | undefined> => {
-    const docRef = doc(db, "users", id);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-        return fromFirestore<User>(docSnap);
+    try {
+        const docRef = doc(db, "users", id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return fromFirestore<User>(docSnap);
+        }
+        return undefined;
+    } catch (error) {
+        console.error("Error getting user by ID:", error);
+        return undefined;
     }
-    return undefined;
 };
 
 
@@ -150,10 +160,9 @@ export const getRoomById = async (id: string): Promise<Room | undefined> => {
     return undefined;
 };
 
-export const updateHotelStatus = async (id: string, status: 'approved' | 'rejected'): Promise<Hotel | undefined> => {
+export const updateHotelStatus = async (id: string, status: 'approved' | 'rejected'): Promise<void> => {
     const docRef = doc(db, "hotels", id);
     await updateDoc(docRef, { status });
-    return getHotelById(id);
 }
 
 export const createHotel = async (hotelData: NewHotel): Promise<Hotel> => {
@@ -167,10 +176,9 @@ export const createHotel = async (hotelData: NewHotel): Promise<Hotel> => {
     return fromFirestore<Hotel>(newHotelSnap);
 }
 
-export const updateRoomStatus = async (id: string, status: 'approved' | 'rejected'): Promise<Room | undefined> => {
+export const updateRoomStatus = async (id: string, status: 'approved' | 'rejected'): Promise<void> => {
     const docRef = doc(db, "rooms", id);
     await updateDoc(docRef, { status });
-    return getRoomById(id);
 }
 
 export const getHotelsByOwner = async (ownerId: string): Promise<Hotel[]> => {

@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -45,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<User | null> => {
-    setLoading(true);
+    // No setLoading(true) here to prevent screen flicker
     try {
       // In a real app, you'd hash the password and send it to a server.
       // Here we simulate it. The password check is now implemented.
@@ -59,8 +60,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Login failed:", error);
       return null;
-    } finally {
-      setLoading(false);
     }
   };
 

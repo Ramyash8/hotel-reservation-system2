@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -63,7 +64,8 @@ export function LoginForm() {
         title: "Login Failed",
         description: "Invalid email or password. Please try again.",
       });
-      form.reset();
+      // Reset only password field on failure
+      form.resetField("password");
     }
   };
 
