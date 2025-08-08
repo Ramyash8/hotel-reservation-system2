@@ -10,8 +10,11 @@ const roomsCol = collection(db, "rooms");
 
 // Helper to convert Firestore doc to our types
 const fromFirestore = <T>(docSnap: any): T => {
+    if (!docSnap.exists()) {
+        return undefined as T;
+    }
+
     const data = docSnap.data();
-    if (!data) return docSnap.id; 
 
     const result: { [key: string]: any } = {
         id: docSnap.id,
@@ -19,14 +22,10 @@ const fromFirestore = <T>(docSnap: any): T => {
     };
 
     // Convert Timestamps to Dates, only if they exist
-    if (data.createdAt && data.createdAt instanceof Timestamp) {
-        result.createdAt = data.createdAt.toDate();
-    }
-    if (data.fromDate && data.fromDate instanceof Timestamp) {
-        result.fromDate = data.fromDate.toDate();
-    }
-    if (data.toDate && data.toDate instanceof Timestamp) {
-        result.toDate = data.toDate.toDate();
+    for (const key in result) {
+        if (result[key] instanceof Timestamp) {
+            result[key] = result[key].toDate();
+        }
     }
 
     return result as T;
@@ -76,10 +75,7 @@ export const getUserById = async (id: string): Promise<User | undefined> => {
     try {
         const docRef = doc(db, "users", id);
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            return fromFirestore<User>(docSnap);
-        }
-        return undefined;
+        return fromFirestore<User>(docSnap);
     } catch (error) {
         console.error("Error getting user by ID:", error);
         return undefined;
@@ -147,10 +143,7 @@ export const getPendingRooms = async (): Promise<Room[]> => {
 export const getHotelById = async (id: string): Promise<Hotel | undefined> => {
     const docRef = doc(db, "hotels", id);
     const docSnap = await getDoc(docRef);
-    if(docSnap.exists()){
-        return fromFirestore<Hotel>(docSnap);
-    }
-    return undefined;
+    return fromFirestore<Hotel>(docSnap);
 };
 
 export const getRoomsByHotelId = async (hotelId: string): Promise<Room[]> => {
@@ -162,10 +155,7 @@ export const getRoomsByHotelId = async (hotelId: string): Promise<Room[]> => {
 export const getRoomById = async (id: string): Promise<Room | undefined> => {
     const docRef = doc(db, "rooms", id);
     const docSnap = await getDoc(docRef);
-     if(docSnap.exists()){
-        return fromFirestore<Room>(docSnap);
-    }
-    return undefined;
+    return fromFirestore<Room>(docSnap);
 };
 
 export const updateHotelStatus = async (id: string, status: 'approved' | 'rejected'): Promise<void> => {
