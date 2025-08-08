@@ -23,7 +23,7 @@ const fromFirestore = <T>(docSnap: any): T => {
 
 
 // Auth functions
-export const authenticateUser = async (email: string): Promise<User | null> => {
+export const authenticateUser = async (email: string, password: string): Promise<User | null> => {
     await new Promise(resolve => setTimeout(resolve, 500));
     const q = query(usersCol, where("email", "==", email));
     const querySnapshot = await getDocs(q);
@@ -32,9 +32,15 @@ export const authenticateUser = async (email: string): Promise<User | null> => {
         return null;
     }
     
-    // NOTE: In a real app, you would compare hashed passwords.
     const userDoc = querySnapshot.docs[0];
-    return fromFirestore<User>(userDoc);
+    const user = fromFirestore<User>(userDoc);
+
+    // NOTE: In a real app, you would compare hashed passwords.
+    if (user.password === password) {
+        return user;
+    }
+
+    return null;
 }
 
 export const createUser = async (userData: NewUser): Promise<User> => {

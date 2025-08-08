@@ -48,8 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       // In a real app, you'd hash the password and send it to a server.
-      // Here we simulate it. The password check is trivial.
-      const authenticatedUser = await authenticateUser(email); // Simplified auth
+      // Here we simulate it. The password check is now implemented.
+      const authenticatedUser = await authenticateUser(email, password);
       if (authenticatedUser) {
         localStorage.setItem("userId", authenticatedUser.id);
         setUser(authenticatedUser);
