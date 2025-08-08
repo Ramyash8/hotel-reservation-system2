@@ -1,4 +1,5 @@
-import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria } from './types';
+
+import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom } from './types';
 
 // Using a Map to make data mutable for admin actions demo
 const users: Map<string, User> = new Map([
@@ -96,13 +97,34 @@ export const searchHotels = async (criteria: HotelSearchCriteria): Promise<Hotel
 };
 
 export const getPendingHotels = async (): Promise<Hotel[]> => {
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-    return Array.from(hotels.values()).filter(h => h.status === 'pending');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const allHotels = Array.from(hotels.values());
+    const pendingHotels = allHotels.filter(h => h.status === 'pending');
+    
+    // Enrich with owner info
+    return pendingHotels.map(hotel => {
+        const owner = users.get(hotel.ownerId);
+        return {
+            ...hotel,
+            ownerName: owner?.name || 'Unknown',
+            ownerEmail: owner?.email || 'N/A'
+        };
+    });
 };
 
+
 export const getPendingRooms = async (): Promise<Room[]> => {
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-    return Array.from(rooms.values()).filter(r => r.status === 'pending');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const allRooms = Array.from(rooms.values());
+    const pendingRooms = allRooms.filter(r => r.status === 'pending');
+
+    return pendingRooms.map(room => {
+        const hotel = hotels.get(room.hotelId);
+        return {
+            ...room,
+            hotelName: hotel?.name || 'Unknown Hotel'
+        };
+    });
 };
 
 export const getHotelById = async (id: string): Promise<Hotel | undefined> => {
@@ -151,4 +173,29 @@ export const updateRoomStatus = async (id: string, status: 'approved' | 'rejecte
         rooms.set(id, room);
     }
     return room;
+}
+
+export const getHotelsByOwner = async (ownerId: string): Promise<Hotel[]> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return Array.from(hotels.values()).filter(h => h.ownerId === ownerId);
+}
+
+export const getRoomsByOwner = async (ownerId: string): Promise<Room[]> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const ownerHotels = Array.from(hotels.values()).filter(h => h.ownerId === ownerId);
+    const ownerHotelIds = ownerHotels.map(h => h.id);
+    return Array.from(rooms.values()).filter(r => ownerHotelIds.includes(r.hotelId));
+}
+
+export const createRoom = async (roomData: NewRoom): Promise<Room> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const newRoom: Room = {
+        id: `room-${Date.now()}`,
+        ...roomData,
+        images: ['https://placehold.co/600x400.png'], // default image
+        status: 'pending',
+        createdAt: new Date(),
+    };
+    rooms.set(newRoom.id, newRoom);
+    return newRoom;
 }

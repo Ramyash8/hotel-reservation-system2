@@ -1,3 +1,4 @@
+
 export type User = {
   id: string;
   name: string;
@@ -21,9 +22,11 @@ export type Hotel = {
   coverImage: string;
   category?: 'Premium' | 'Eco-Friendly' | 'Ski Resort' | 'Historic' | 'Boutique';
   createdAt: Date;
+  ownerName?: string; // For admin view
+  ownerEmail?: string; // For admin view
 };
 
-export type NewHotel = Omit<Hotel, 'id' | 'status' | 'coverImage' | 'createdAt'>;
+export type NewHotel = Omit<Hotel, 'id' | 'status' | 'coverImage' | 'createdAt' | 'ownerName' | 'ownerEmail'>;
 
 export type HotelSearchCriteria = {
   destination?: string;
@@ -41,7 +44,10 @@ export type Room = {
   capacity: number;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: Date;
+  hotelName?: string; // For admin view
 };
+
+export type NewRoom = Omit<Room, 'id' | 'status' | 'images' | 'createdAt' | 'hotelName'>;
 
 export type Booking = {
   id: string;
