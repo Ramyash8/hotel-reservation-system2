@@ -58,7 +58,7 @@ const sampleRooms: Room[] = [
         description: 'A suite fit for royalty with panoramic city views.',
         price: 950,
         capacity: 4,
-        images: ['https://placehold.co/600x400.png', 'https://placehold.co/600x401.png', 'https://placehold.co/600x402.png'],
+        images: ['https://cf.bstatic.com/xdata/images/hotel/max1024x768/528344237.jpg?k=3f2739e44485775317b96e5dc059e356d4608c887082987113c14856f68c16d0&o=', 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/528344242.jpg?k=7f88a9134a6a0537c3a8c51a704e622b3974a68a52932a39a888c03c53e6a4a4&o=', 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/528344246.jpg?k=b4e637ba235c8734ef98a3064eac7a7b8e19c3b8ca7026df1f2f115a3059296e&o='],
         status: 'approved',
         createdAt: new Date()
     },
@@ -69,7 +69,7 @@ const sampleRooms: Room[] = [
         description: 'Wake up to the iconic view of the Santorini caldera.',
         price: 450,
         capacity: 2,
-        images: ['https://placehold.co/600x400.png', 'https://placehold.co/600x401.png', 'https://placehold.co/600x402.png'],
+        images: ['https://cf.bstatic.com/xdata/images/hotel/max1024x768/480530682.jpg?k=c23ad2a586718c20fc003eb1d3363560b9d13567291fc4d78d6f72a6a3aeb58c&o=','https://cf.bstatic.com/xdata/images/hotel/max1024x768/678234747.jpg?k=418b38f7b6ec6ee9eb5104e26350bf1df490141b18f063f6ca4462f89dc42e1f&o=','https://cf.bstatic.com/xdata/images/hotel/max1024x768/678234748.jpg?k=8fcacdc49bfec35238f96871e0668fbad3eff62f51779b051b070e8e8d778fcc&o='],
         status: 'approved',
         createdAt: new Date()
     },
