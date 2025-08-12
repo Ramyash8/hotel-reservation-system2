@@ -55,7 +55,7 @@ export function RoomCard({ room, hotel }: RoomCardProps) {
   return (
     <>
       <Card className="flex flex-col md:flex-row overflow-hidden">
-        <div className="w-full md:w-1/3">
+        <div className="w-full md:w-[300px] flex-shrink-0">
           <Carousel className="relative w-full h-full">
             <CarouselContent>
               {room.images.map((src, index) => (
@@ -67,6 +67,7 @@ export function RoomCard({ room, hotel }: RoomCardProps) {
                       layout="fill"
                       objectFit="cover"
                       data-ai-hint={(room as any)['data-ai-hint'] || 'hotel room'}
+                      className="bg-muted"
                     />
                   </div>
                 </CarouselItem>
@@ -74,13 +75,13 @@ export function RoomCard({ room, hotel }: RoomCardProps) {
             </CarouselContent>
             {room.images.length > 1 && (
               <>
-                <CarouselPrevious className="absolute left-2" />
-                <CarouselNext className="absolute right-2" />
+                <CarouselPrevious className="absolute left-3 bg-background/50 hover:bg-background" />
+                <CarouselNext className="absolute right-3 bg-background/50 hover:bg-background" />
               </>
             )}
           </Carousel>
         </div>
-        <div className="w-full md:w-2/3 flex flex-col">
+        <div className="flex-grow flex flex-col">
           <CardHeader>
             <CardTitle className="font-headline">{room.title}</CardTitle>
             <CardDescription>{room.description}</CardDescription>
