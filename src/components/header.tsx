@@ -1,6 +1,7 @@
+
 "use client"
 import Link from "next/link"
-import { Building2, User, LogOut, LogIn, UserPlus, Globe } from "lucide-react"
+import { Building2, User, LogOut, LogIn, UserPlus, Globe, BookMarked } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -51,7 +52,10 @@ export function Header() {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                  {user.role === 'owner' && <DropdownMenuItem onClick={() => router.push('/owner')}>Owner Dashboard</DropdownMenuItem>}
                  {user.role === 'admin' && <DropdownMenuItem onClick={() => router.push('/admin')}>Admin Dashboard</DropdownMenuItem>}
-                <DropdownMenuItem>Bookings</DropdownMenuItem>
+                 <DropdownMenuItem onClick={() => router.push('/bookings')}>
+                    <BookMarked className="mr-2 h-4 w-4" />
+                    My Bookings
+                 </DropdownMenuItem>
                 <DropdownMenuItem>Profile</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>

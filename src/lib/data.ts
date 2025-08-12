@@ -1,7 +1,8 @@
 
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp } from 'firebase/firestore';
-import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom } from './types';
+import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom, NewBooking } from './types';
+import { differenceInDays } from 'date-fns';
 
 // Hardcoded sample data
 const sampleUsers: User[] = [
@@ -85,6 +86,8 @@ const sampleRooms: Room[] = [
         createdAt: new Date()
     }
 ];
+
+const sampleBookings: Booking[] = [];
 
 
 // Collection references
@@ -230,7 +233,7 @@ export const getRoomById = async (id: string): Promise<Room | undefined> => {
 };
 
 export const updateHotelStatus = async (id: string, status: 'approved' | 'rejected'): Promise<void> => {
-    const hotel = sampleHotels.find(h => h.id === id);
+    const hotel = sampleHotels.find(r => r.id === id);
     if(hotel) {
         hotel.status = status;
     }
@@ -282,4 +285,53 @@ export const createRoom = async (roomData: NewRoom): Promise<Room> => {
     };
     sampleRooms.push(newRoom);
     return newRoom;
+}
+
+
+// Booking Functions
+export const createBooking = async (bookingData: NewBooking): Promise<Booking> => {
+    const from = bookingData.fromDate instanceof Timestamp ? bookingData.fromDate.toDate() : bookingData.fromDate;
+    const to = bookingData.toDate instanceof Timestamp ? bookingData.toDate.toDate() : bookingData.toDate;
+
+    // Basic validation
+    if (!from || !to || !bookingData.userId || !bookingData.roomId) {
+        throw new Error("Missing required booking information.");
+    }
+    
+    // In a real app, you'd check for overlapping bookings here.
+    // For this demo, we'll just assume the booking is always possible.
+
+    const room = await getRoomById(bookingData.roomId);
+    if (!room) {
+        throw new Error("Room not found.");
+    }
+    const hotel = await getHotelById(bookingData.hotelId);
+     if (!hotel) {
+        throw new Error("Hotel not found.");
+    }
+
+    const numberOfNights = differenceInDays(to, from);
+    if (numberOfNights <= 0) {
+        throw new Error("Booking must be for at least one night.");
+    }
+    
+    const newBooking: Booking = {
+        id: `booking-${sampleBookings.length + 1}`,
+        ...bookingData,
+        totalPrice: room.price * numberOfNights,
+        status: 'confirmed',
+        createdAt: new Date(),
+        hotelName: hotel.name,
+        hotelLocation: hotel.location,
+        roomTitle: room.title,
+        coverImage: hotel.coverImage,
+    };
+    
+    sampleBookings.push(newBooking);
+    console.log("New booking created:", newBooking);
+    return newBooking;
+};
+
+export const getBookingsByUser = async (userId: string): Promise<Booking[]> => {
+    return sampleBookings.filter(b => b.userId === userId).sort((a,b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
 }

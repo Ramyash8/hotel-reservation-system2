@@ -63,4 +63,12 @@ export type Booking = {
   totalPrice: number;
   status: 'confirmed' | 'cancelled';
   createdAt: Date | Timestamp;
+  // Denormalized data for easy display
+  hotelName?: string;
+  hotelLocation?: string;
+  roomTitle?: string;
+  coverImage?: string;
 };
+
+export type NewBooking = Omit<Booking, 'id' | 'createdAt' | 'status'>
+

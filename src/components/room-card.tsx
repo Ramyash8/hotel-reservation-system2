@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useTransition } from "react"
@@ -9,8 +10,10 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Users, BedDouble, Wallet, Loader2 } from "lucide-react"
 import { DateRangePicker } from "./ui/date-range-picker"
 import { useToast } from "@/hooks/use-toast"
-import { suggestAlternativeAccommodations, SuggestAlternativeAccommodationsOutput } from "@/ai/flows/suggest-alternative-accommodations"
-import { SuggestionModal } from "./suggestion-modal"
+import { useAuth } from "@/hooks/use-auth"
+import { createBooking } from "@/lib/data"
+import type { DateRange } from "react-day-picker"
+import { useRouter } from "next/navigation"
 
 interface RoomCardProps {
   room: Room
@@ -19,36 +22,55 @@ interface RoomCardProps {
 
 export function RoomCard({ room, hotel }: RoomCardProps) {
   const { toast } = useToast()
+  const { user } = useAuth()
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [suggestions, setSuggestions] = useState<SuggestAlternativeAccommodationsOutput | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(new Date().setDate(new Date().getDate() + 7)),
+  })
 
-  const handleBookingAttempt = () => {
-    startTransition(() => {
-      // Simulate booking failure
+  const handleBooking = () => {
+    if (!user) {
       toast({
         variant: "destructive",
-        title: "Booking Unavailable",
-        description: `The '${room.title}' is not available for the selected dates. Let's find you an alternative.`,
+        title: "Authentication Required",
+        description: "Please sign in to book a room.",
       })
+      return
+    }
 
-      // Trigger AI suggestion flow
-      suggestAlternativeAccommodations({
-        location: hotel.location,
-        priceRange: `around $${room.price}/night`,
-        amenities: "Similar capacity and quality",
-        unavailableAccommodation: `${room.title} at ${hotel.name}`,
-      }).then(result => {
-        setSuggestions(result)
-        setIsModalOpen(true)
-      }).catch(error => {
-        console.error("AI suggestion failed:", error)
+    if (!dateRange?.from || !dateRange?.to) {
+        toast({
+            variant: "destructive",
+            title: "Invalid Dates",
+            description: "Please select a valid date range.",
+        })
+        return
+    }
+
+    startTransition(async () => {
+      try {
+        await createBooking({
+            userId: user.id,
+            roomId: room.id,
+            hotelId: hotel.id,
+            fromDate: dateRange.from!,
+            toDate: dateRange.to!,
+        })
+        toast({
+          title: "Booking Confirmed!",
+          description: `Your stay at ${hotel.name} is booked.`,
+        })
+        router.push("/bookings");
+      } catch (error) {
+        console.error("Booking failed:", error)
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Could not fetch alternative suggestions at this time.",
+          title: "Booking Failed",
+          description: (error as Error).message || "Could not book the room at this time.",
         })
-      })
+      }
     })
   }
 
@@ -56,8 +78,8 @@ export function RoomCard({ room, hotel }: RoomCardProps) {
     <>
       <Card className="overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-3">
-          <div className="md:col-span-1">
-             <Carousel className="relative w-full h-full">
+          <div className="md:col-span-1 relative">
+             <Carousel className="w-full h-full">
               <CarouselContent>
                 {room.images.map((src, index) => (
                   <CarouselItem key={index}>
@@ -94,7 +116,7 @@ export function RoomCard({ room, hotel }: RoomCardProps) {
                 <span className="flex items-center gap-2"><Wallet className="w-4 h-4" /> Free cancellation</span>
               </div>
               <div>
-                <DateRangePicker />
+                <DateRangePicker initialDateRange={dateRange} onSelect={setDateRange} />
               </div>
             </CardContent>
             <CardFooter className="bg-secondary/50 p-4 flex justify-between items-center">
@@ -102,7 +124,7 @@ export function RoomCard({ room, hotel }: RoomCardProps) {
                 <span className="text-2xl font-bold">${room.price}</span>
                 <span className="text-sm text-muted-foreground">/night</span>
               </div>
-              <Button onClick={handleBookingAttempt} disabled={isPending} className="bg-accent text-accent-foreground hover:bg-accent/90">
+              <Button onClick={handleBooking} disabled={isPending}>
                 {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Book Now
               </Button>
@@ -110,13 +132,6 @@ export function RoomCard({ room, hotel }: RoomCardProps) {
           </div>
         </div>
       </Card>
-      {suggestions && (
-        <SuggestionModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          suggestions={suggestions}
-        />
-      )}
     </>
   )
 }
