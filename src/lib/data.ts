@@ -309,6 +309,10 @@ export const createBooking = async (bookingData: NewBooking): Promise<Booking> =
      if (!hotel) {
         throw new Error("Hotel not found.");
     }
+    const user = await getUserById(bookingData.userId);
+    if (!user) {
+        throw new Error("User not found.");
+    }
 
     const numberOfNights = differenceInDays(to, from);
     if (numberOfNights <= 0) {
@@ -325,6 +329,7 @@ export const createBooking = async (bookingData: NewBooking): Promise<Booking> =
         hotelLocation: hotel.location,
         roomTitle: room.title,
         coverImage: hotel.coverImage,
+        userName: user.name,
     };
     
     sampleBookings.push(newBooking);
@@ -334,4 +339,14 @@ export const createBooking = async (bookingData: NewBooking): Promise<Booking> =
 
 export const getBookingsByUser = async (userId: string): Promise<Booking[]> => {
     return sampleBookings.filter(b => b.userId === userId).sort((a,b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
+}
+
+export const getBookingsByOwner = async (ownerId: string): Promise<Booking[]> => {
+    const ownerHotelIds = sampleHotels
+        .filter(h => h.ownerId === ownerId)
+        .map(h => h.id);
+    
+    return sampleBookings
+        .filter(b => ownerHotelIds.includes(b.hotelId))
+        .sort((a,b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
 }

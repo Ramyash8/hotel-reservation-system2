@@ -7,31 +7,35 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { AddHotelForm } from "./add-hotel-form";
 import { AddRoomForm } from "./add-room-form"; 
-import { getHotelsByOwner, getRoomsByOwner } from "@/lib/data";
+import { getHotelsByOwner, getRoomsByOwner, getBookingsByOwner } from "@/lib/data";
 import { useAuth } from "@/hooks/use-auth";
-import type { Hotel, Room } from "@/lib/types";
-import { Loader2 } from "lucide-react";
+import type { Hotel, Room, Booking } from "@/lib/types";
+import { Loader2, User, Calendar } from "lucide-react";
 import { HotelCard } from "./hotel-card";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { format } from "date-fns";
 
 
 export function OwnerDashboard() {
   const { user } = useAuth();
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user?.id) {
       const fetchData = async () => {
         setLoading(true);
-        const [ownerHotels, ownerRooms] = await Promise.all([
+        const [ownerHotels, ownerRooms, ownerBookings] = await Promise.all([
           getHotelsByOwner(user.id),
-          getRoomsByOwner(user.id)
+          getRoomsByOwner(user.id),
+          getBookingsByOwner(user.id)
         ]);
         setHotels(ownerHotels);
         setRooms(ownerRooms);
+        setBookings(ownerBookings);
         setLoading(false);
       };
       fetchData();
@@ -54,7 +58,7 @@ export function OwnerDashboard() {
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         <TabsTrigger value="hotels">My Hotels <Badge className="ml-2">{hotels.length}</Badge></TabsTrigger>
         <TabsTrigger value="rooms">My Rooms <Badge className="ml-2">{rooms.length}</Badge></TabsTrigger>
-        <TabsTrigger value="bookings">Bookings <Badge className="ml-2">1</Badge></TabsTrigger>
+        <TabsTrigger value="bookings">Bookings <Badge className="ml-2">{bookings.length}</Badge></TabsTrigger>
       </TabsList>
       
       <TabsContent value="dashboard">
@@ -83,7 +87,7 @@ export function OwnerDashboard() {
                     <CardDescription>Current and upcoming guest stays.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-4xl font-bold">1</p>
+                    <p className="text-4xl font-bold">{bookings.length}</p>
                 </CardContent>
             </Card>
         </div>
@@ -154,9 +158,53 @@ export function OwnerDashboard() {
 
       <TabsContent value="bookings">
         <Card>
-          <CardContent className="p-6">
-            <p>Booking list will be here.</p>
-          </CardContent>
+            <CardHeader>
+                <CardTitle>Guest Bookings</CardTitle>
+                <CardDescription>A list of all reservations at your properties.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Guest</TableHead>
+                            <TableHead>Hotel & Room</TableHead>
+                            <TableHead>Dates</TableHead>
+                            <TableHead className="text-right">Total Paid</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {bookings.length > 0 ? bookings.map(booking => (
+                            <TableRow key={booking.id}>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        <User className="h-4 w-4" />
+                                        <span>{booking.userName}</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <p className="font-medium">{booking.hotelName}</p>
+                                    <p className="text-sm text-muted-foreground">{booking.roomTitle}</p>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="h-4 w-4" />
+                                        <span>
+                                            {format(new Date(booking.fromDate as Date), "LLL d")} - {format(new Date(booking.toDate as Date), "LLL d, yyyy")}
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right font-medium">${booking.totalPrice}</TableCell>
+                            </TableRow>
+                        )) : (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    You have no bookings yet.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
         </Card>
       </TabsContent>
     </Tabs>
