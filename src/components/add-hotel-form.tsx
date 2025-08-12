@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { createHotel } from "@/lib/data";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./ui/card";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 const addHotelFormSchema = z.object({
   name: z.string().min(2, {
@@ -42,6 +44,8 @@ const defaultValues: Partial<AddHotelFormValues> = {
 
 export function AddHotelForm() {
   const { toast } = useToast();
+  const { user } = useAuth();
+
   const form = useForm<AddHotelFormValues>({
     resolver: zodResolver(addHotelFormSchema),
     defaultValues,
@@ -49,8 +53,21 @@ export function AddHotelForm() {
   });
 
   const onSubmit = async (data: AddHotelFormValues) => {
+    if (!user) {
+       toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: "You must be logged in to create a hotel.",
+        });
+        return;
+    }
     try {
-        await createHotel({ ...data, ownerId: 'user-2' }); // Hardcoded ownerId for demo
+        await createHotel({ 
+            ...data, 
+            ownerId: user.id,
+            ownerName: user.name,
+            ownerEmail: user.email,
+        });
         toast({
             title: "Hotel Submitted",
             description: "Your new hotel has been submitted for approval.",

@@ -26,9 +26,10 @@ export type Hotel = {
   createdAt: Date | Timestamp;
   ownerName?: string; // For admin view
   ownerEmail?: string; // For admin view
+  'data-ai-hint'?: string;
 };
 
-export type NewHotel = Omit<Hotel, 'id' | 'status' | 'coverImage' | 'createdAt' | 'ownerName' | 'ownerEmail'>;
+export type NewHotel = Omit<Hotel, 'id' | 'status' | 'coverImage' | 'createdAt'>;
 
 export type HotelSearchCriteria = {
   destination?: string;
@@ -47,9 +48,10 @@ export type Room = {
   status: 'pending' | 'approved' | 'rejected';
   createdAt: Date | Timestamp;
   hotelName?: string; // For admin view
+  'data-ai-hint'?: string;
 };
 
-export type NewRoom = Omit<Room, 'id' | 'status' | 'images' | 'createdAt' | 'hotelName'>;
+export type NewRoom = Omit<Room, 'id' | 'status' | 'images' | 'createdAt' | 'hotelName' | 'data-ai-hint'>;
 
 export type Booking = {
   id: string;

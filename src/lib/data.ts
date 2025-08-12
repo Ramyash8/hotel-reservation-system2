@@ -4,6 +4,13 @@ import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Time
 import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom } from './types';
 
 // Hardcoded sample data
+const sampleUsers: User[] = [
+    { id: 'user-1', name: 'Alice Owner', email: 'alice@example.com', role: 'owner', password: 'password', createdAt: new Date() },
+    { id: 'user-2', name: 'Bob Guest', email: 'bob@example.com', role: 'user', password: 'password', createdAt: new Date() },
+    { id: 'admin-user', name: 'Admin', email: 'admin@lodgify.lite', role: 'admin', password: 'adminpassword', createdAt: new Date() },
+];
+
+
 const sampleHotels: Hotel[] = [
     {
         id: 'hotel-1',
@@ -123,6 +130,13 @@ export const authenticateUser = async (email: string, password: string): Promise
             createdAt: new Date(),
         };
     }
+    
+    const allUsers = [...sampleUsers];
+    const user = allUsers.find(u => u.email === email && u.password === password);
+
+    if (user) {
+        return user;
+    }
 
     // Original Firestore authentication logic
     try {
@@ -135,10 +149,10 @@ export const authenticateUser = async (email: string, password: string): Promise
         }
         
         const userDoc = querySnapshot.docs[0];
-        const user = fromFirestore<User>(userDoc);
+        const dbUser = fromFirestore<User>(userDoc);
 
-        if (user && user.password === password) {
-            return user;
+        if (dbUser && dbUser.password === password) {
+            return dbUser;
         }
         
         console.log("Password does not match or user data is invalid.");
@@ -153,28 +167,21 @@ export const createUser = async (userData: NewUser): Promise<User> => {
     const q = query(usersCol, where("email", "==", userData.email));
     const querySnapshot = await getDocs(q);
 
-    if (!querySnapshot.empty) {
+    if (!querySnapshot.empty || sampleUsers.find(u => u.email === userData.email)) {
         throw new Error("User with this email already exists");
     }
 
-    const newUserRef = await addDoc(usersCol, {
-        ...userData,
-        createdAt: serverTimestamp(),
-    });
-
-    const newUserSnap = await getDoc(newUserRef);
-    return fromFirestore<User>(newUserSnap);
+    const newUser: User = {
+      id: `user-${sampleUsers.length + 1}`,
+      ...userData,
+      createdAt: new Date(),
+    };
+    sampleUsers.push(newUser);
+    return newUser;
 };
 
 export const getUserById = async (id: string): Promise<User | undefined> => {
-    try {
-        const docRef = doc(db, "users", id);
-        const docSnap = await getDoc(docRef);
-        return fromFirestore<User>(docSnap);
-    } catch (error) {
-        console.error("Error getting user by ID:", error);
-        return undefined;
-    }
+    return sampleUsers.find(u => u.id === id);
 };
 
 
@@ -196,14 +203,18 @@ export const searchHotels = async (criteria: HotelSearchCriteria): Promise<Hotel
 };
 
 export const getPendingHotels = async (): Promise<Hotel[]> => {
-    // Returning an empty array as we are using sample data for now.
-    return [];
+    return sampleHotels.filter(h => h.status === 'pending');
 };
 
 
 export const getPendingRooms = async (): Promise<Room[]> => {
-    // Returning an empty array as we are using sample data for now.
-     return [];
+     return sampleRooms.filter(r => r.status === 'pending').map(room => {
+        const hotel = sampleHotels.find(h => h.id === room.hotelId);
+        return {
+            ...room,
+            hotelName: hotel ? hotel.name : 'Unknown Hotel'
+        }
+    });
 };
 
 export const getHotelById = async (id: string): Promise<Hotel | undefined> => {
@@ -252,7 +263,13 @@ export const getHotelsByOwner = async (ownerId: string): Promise<Hotel[]> => {
 
 export const getRoomsByOwner = async (ownerId: string): Promise<Room[]> => {
     const ownerHotelIds = sampleHotels.filter(h => h.ownerId === ownerId).map(h => h.id);
-    return sampleRooms.filter(r => ownerHotelIds.includes(r.hotelId));
+    return sampleRooms.filter(r => ownerHotelIds.includes(r.hotelId)).map(room => {
+        const hotel = sampleHotels.find(h => h.id === room.hotelId);
+        return {
+            ...room,
+            hotelName: hotel ? hotel.name : 'Unknown Hotel'
+        }
+    });
 }
 
 export const createRoom = async (roomData: NewRoom): Promise<Room> => {
@@ -266,7 +283,3 @@ export const createRoom = async (roomData: NewRoom): Promise<Room> => {
     sampleRooms.push(newRoom);
     return newRoom;
 }
-
-    
-
-    
