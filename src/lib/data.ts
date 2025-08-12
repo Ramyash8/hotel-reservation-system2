@@ -259,10 +259,14 @@ export const createRoom = async (roomData: NewRoom): Promise<Room> => {
      const newRoom: Room = {
         id: `room-${sampleRooms.length + 1}`,
         ...roomData,
-        images: ['https://placehold.co/600x400.png'], // default image
+        images: ['https://placehold.co/600x400.png', 'https://placehold.co/600x401.png', 'https://placehold.co/600x402.png'],
         status: 'pending',
         createdAt: new Date(),
     };
     sampleRooms.push(newRoom);
     return newRoom;
 }
+
+    
+
+    
