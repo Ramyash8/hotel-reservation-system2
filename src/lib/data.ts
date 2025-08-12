@@ -31,7 +31,7 @@ const sampleHotels: Hotel[] = [
         description: 'Nestled on the cliffs of Oia, our hotel offers stunning sunsets and direct access to the azure waters of the Aegean Sea.',
         ownerId: 'user-2',
         status: 'approved',
-        coverImage: 'https://www.kayak.co.in/rimg/dimg/dynamic/76/2023/08/eef8369398e2d8ac1191ee20223f219f.webp',
+        coverImage: 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/678234743.jpg?k=acee705a06f3347cd2f3d53609a536b772a99eda3603c4eb5ef136e5e6cd6204&o=',
         category: 'Boutique',
         createdAt: new Date(),
         'data-ai-hint': 'santorini hotel'
