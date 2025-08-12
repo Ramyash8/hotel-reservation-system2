@@ -51,7 +51,7 @@ const sampleRooms: Room[] = [
         description: 'A suite fit for royalty with panoramic city views.',
         price: 950,
         capacity: 4,
-        images: ['https://placehold.co/600x400.png'],
+        images: ['https://placehold.co/600x400.png', 'https://placehold.co/600x401.png', 'https://placehold.co/600x402.png'],
         status: 'approved',
         createdAt: new Date()
     },
@@ -62,7 +62,7 @@ const sampleRooms: Room[] = [
         description: 'Wake up to the iconic view of the Santorini caldera.',
         price: 450,
         capacity: 2,
-        images: ['https://placehold.co/600x400.png', 'https://placehold.co/600x400.png'],
+        images: ['https://placehold.co/600x400.png', 'https://placehold.co/600x401.png', 'https://placehold.co/600x402.png'],
         status: 'approved',
         createdAt: new Date()
     },
@@ -73,7 +73,7 @@ const sampleRooms: Room[] = [
         description: 'Modern comforts and a workspace for the discerning traveler.',
         price: 250,
         capacity: 2,
-        images: ['https://placehold.co/600x400.png'],
+        images: ['https://placehold.co/600x400.png', 'https://placehold.co/600x401.png', 'https://placehold.co/600x402.png'],
         status: 'approved',
         createdAt: new Date()
     }
