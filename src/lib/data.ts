@@ -19,6 +19,8 @@ const sampleHotels: Hotel[] = [
         location: 'Istanbul, Turkey',
         description: 'Experience unparalleled luxury and breathtaking views of the Bosphorus in our five-star hotel, where elegance meets comfort.',
         ownerId: 'user-1',
+        ownerName: 'Alice Owner',
+        ownerEmail: 'alice@example.com',
         status: 'approved',
         coverImage: 'https://cf.bstatic.com/static/img/theme-index/bg_luxury/869918c9da63b2c5685fce05965700da5b0e6617.jpg',
         category: 'Premium',
@@ -31,6 +33,8 @@ const sampleHotels: Hotel[] = [
         location: 'Oia, Greece',
         description: 'Nestled on the cliffs of Oia, our hotel offers stunning sunsets and direct access to the azure waters of the Aegean Sea.',
         ownerId: 'user-2',
+        ownerName: 'Bob Guest',
+        ownerEmail: 'bob@example.com',
         status: 'approved',
         coverImage: 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/678234743.jpg?k=acee705a06f3347cd2f3d53609a536b772a99eda3603c4eb5ef136e5e6cd6204&o=',
         category: 'Boutique',
@@ -43,6 +47,8 @@ const sampleHotels: Hotel[] = [
         location: 'Ankara, Turkey',
         description: 'A stylish and contemporary hotel in the heart of the city, perfect for business travelers and urban explorers.',
         ownerId: 'user-1',
+        ownerName: 'Alice Owner',
+        ownerEmail: 'alice@example.com',
         status: 'approved',
         coverImage: 'https://lux-life.digital/wp-content/uploads/2019/09/turkish-hotel.jpg',
         category: 'Boutique',
@@ -330,6 +336,7 @@ export const createBooking = async (bookingData: NewBooking): Promise<Booking> =
         roomTitle: room.title,
         coverImage: hotel.coverImage,
         userName: user.name,
+        hotelOwnerId: hotel.ownerId,
     };
     
     sampleBookings.push(newBooking);
@@ -342,11 +349,12 @@ export const getBookingsByUser = async (userId: string): Promise<Booking[]> => {
 }
 
 export const getBookingsByOwner = async (ownerId: string): Promise<Booking[]> => {
-    const ownerHotelIds = sampleHotels
-        .filter(h => h.ownerId === ownerId)
-        .map(h => h.id);
-    
     return sampleBookings
-        .filter(b => ownerHotelIds.includes(b.hotelId))
+        .filter(b => b.hotelOwnerId === ownerId)
         .sort((a,b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
+}
+
+export const getAllBookings = async (): Promise<Booking[]> => {
+    // In a real app this would likely have pagination
+    return sampleBookings.sort((a, b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
 }

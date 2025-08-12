@@ -69,8 +69,7 @@ export type Booking = {
   roomTitle?: string;
   coverImage?: string;
   userName?: string; // For owner view
+  hotelOwnerId?: string; // For owner view filtering
 };
 
 export type NewBooking = Omit<Booking, 'id' | 'createdAt' | 'status'>
-
-

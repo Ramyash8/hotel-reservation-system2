@@ -5,10 +5,11 @@ import React, { useState, useEffect, useTransition } from "react";
 import {
   getPendingHotels,
   getPendingRooms,
+  getAllBookings,
   updateHotelStatus,
   updateRoomStatus,
 } from "@/lib/data";
-import type { Hotel, Room } from "@/lib/types";
+import type { Hotel, Room, Booking } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -21,26 +22,30 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Loader2, Building, BedDouble, User } from "lucide-react";
+import { Check, X, Loader2, Building, BedDouble, User, BookOpen, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { format } from "date-fns";
 
 export function AdminDashboard() {
   const [pendingHotels, setPendingHotels] = useState<Hotel[]>([]);
   const [pendingRooms, setPendingRooms] = useState<Room[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
   const loadData = async () => {
     setLoading(true);
-    const [hotels, rooms] = await Promise.all([
+    const [hotels, rooms, allBookings] = await Promise.all([
       getPendingHotels(),
       getPendingRooms(),
+      getAllBookings(),
     ]);
     setPendingHotels(hotels);
     setPendingRooms(rooms);
+    setBookings(allBookings);
     setLoading(false);
   };
 
@@ -81,7 +86,7 @@ export function AdminDashboard() {
 
   return (
     <Tabs defaultValue="hotels">
-      <TabsList className="grid w-full grid-cols-2">
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="hotels">
           <Building className="mr-2 h-4 w-4" />
           Pending Hotels <Badge className="ml-2">{pendingHotels.length}</Badge>
@@ -89,6 +94,10 @@ export function AdminDashboard() {
         <TabsTrigger value="rooms">
           <BedDouble className="mr-2 h-4 w-4" />
           Pending Rooms <Badge className="ml-2">{pendingRooms.length}</Badge>
+        </TabsTrigger>
+        <TabsTrigger value="bookings">
+          <BookOpen className="mr-2 h-4 w-4" />
+          All Bookings <Badge className="ml-2">{bookings.length}</Badge>
         </TabsTrigger>
       </TabsList>
       <TabsContent value="hotels">
@@ -205,6 +214,57 @@ export function AdminDashboard() {
               </TableBody>
             </Table>
           </CardContent>
+        </Card>
+      </TabsContent>
+       <TabsContent value="bookings">
+        <Card>
+            <CardHeader>
+                <CardTitle>All Platform Bookings</CardTitle>
+                <CardDescription>A list of all reservations across all properties.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Guest</TableHead>
+                            <TableHead>Hotel & Room</TableHead>
+                            <TableHead>Dates</TableHead>
+                            <TableHead className="text-right">Total Paid</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {bookings.length > 0 ? bookings.map(booking => (
+                            <TableRow key={booking.id}>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        <User className="h-4 w-4" />
+                                        <span>{booking.userName}</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <p className="font-medium">{booking.hotelName}</p>
+                                    <p className="text-sm text-muted-foreground">{booking.roomTitle}</p>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="h-4 w-4" />
+                                        <span>
+                                            {format(new Date(booking.fromDate as Date), "LLL d")} - {format(new Date(booking.toDate as Date), "LLL d, yyyy")}
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right font-medium">${booking.totalPrice}</TableCell>
+                            </TableRow>
+                        )) : (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    There are no bookings on the platform yet.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
         </Card>
       </TabsContent>
     </Tabs>
