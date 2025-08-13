@@ -10,6 +10,7 @@ import { Loader2, BedDouble, Calendar, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { Badge } from './ui/badge';
+import Link from 'next/link';
 
 export function UserBookings() {
     const { user } = useAuth();
@@ -49,7 +50,7 @@ export function UserBookings() {
         return (
             <Card>
                 <CardContent className="p-12 text-center text-muted-foreground">
-                    You have no bookings yet.
+                    You have no bookings yet. Time to <Link href="/" className="text-primary underline">plan a trip</Link>!
                 </CardContent>
             </Card>
         );
@@ -109,4 +110,3 @@ export function UserBookings() {
         </div>
     );
 }
-

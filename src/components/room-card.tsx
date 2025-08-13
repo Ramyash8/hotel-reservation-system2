@@ -25,10 +25,7 @@ export function RoomCard({ room, hotel }: RoomCardProps) {
   const { user } = useAuth()
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: new Date(new Date().setDate(new Date().getDate() + 7)),
-  })
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const handleBooking = () => {
     if (!user) {
@@ -37,6 +34,7 @@ export function RoomCard({ room, hotel }: RoomCardProps) {
         title: "Authentication Required",
         description: "Please sign in to book a room.",
       })
+      router.push('/login');
       return
     }
 
@@ -75,63 +73,61 @@ export function RoomCard({ room, hotel }: RoomCardProps) {
   }
 
   return (
-    <>
-      <Card className="overflow-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-3">
-          <div className="md:col-span-1 relative">
-             <Carousel className="w-full h-full">
-              <CarouselContent>
-                {room.images.map((src, index) => (
-                  <CarouselItem key={index}>
-                    <div className="relative aspect-video h-full">
-                      <Image
-                        src={src}
-                        alt={`${room.title} view ${index + 1}`}
-                        layout="fill"
-                        objectFit="cover"
-                        data-ai-hint={(room as any)['data-ai-hint'] || 'hotel room'}
-                        className="bg-muted"
-                      />
+    <Card className="overflow-hidden shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-12">
+            <div className="md:col-span-5">
+                <Carousel className="w-full h-full">
+                    <CarouselContent>
+                        {room.images.map((src, index) => (
+                        <CarouselItem key={index}>
+                            <div className="relative aspect-[4/3] h-full">
+                            <Image
+                                src={src}
+                                alt={`${room.title} view ${index + 1}`}
+                                layout="fill"
+                                objectFit="cover"
+                                data-ai-hint={(room as any)['data-ai-hint'] || 'hotel room'}
+                                className="bg-muted"
+                            />
+                            </div>
+                        </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    {room.images.length > 1 && (
+                        <>
+                        <CarouselPrevious className="absolute left-3 bg-background/50 hover:bg-background" />
+                        <CarouselNext className="absolute right-3 bg-background/50 hover:bg-background" />
+                        </>
+                    )}
+                </Carousel>
+            </div>
+            <div className="md:col-span-7 flex flex-col">
+                <CardHeader>
+                    <CardTitle className="font-headline">{room.title}</CardTitle>
+                    <CardDescription>{room.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-4">
+                    <div className="flex items-center text-sm text-muted-foreground gap-4">
+                        <span className="flex items-center gap-2"><BedDouble className="w-4 h-4" /> 1 King Bed</span>
+                        <span className="flex items-center gap-2"><Users className="w-4 h-4" /> {room.capacity} Guests</span>
+                        <span className="flex items-center gap-2"><Wallet className="w-4 h-4" /> Free cancellation</span>
                     </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              {room.images.length > 1 && (
-                <>
-                  <CarouselPrevious className="absolute left-3 bg-background/50 hover:bg-background" />
-                  <CarouselNext className="absolute right-3 bg-background/50 hover:bg-background" />
-                </>
-              )}
-            </Carousel>
-          </div>
-          <div className="md:col-span-2 flex flex-col">
-            <CardHeader>
-              <CardTitle className="font-headline">{room.title}</CardTitle>
-              <CardDescription>{room.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow space-y-4">
-              <div className="flex items-center text-sm text-muted-foreground gap-4">
-                <span className="flex items-center gap-2"><BedDouble className="w-4 h-4" /> 1 King Bed</span>
-                <span className="flex items-center gap-2"><Users className="w-4 h-4" /> {room.capacity} Guests</span>
-                <span className="flex items-center gap-2"><Wallet className="w-4 h-4" /> Free cancellation</span>
-              </div>
-              <div>
-                <DateRangePicker initialDateRange={dateRange} onSelect={setDateRange} />
-              </div>
-            </CardContent>
-            <CardFooter className="bg-secondary/50 p-4 flex justify-between items-center">
-              <div>
-                <span className="text-2xl font-bold">${room.price}</span>
-                <span className="text-sm text-muted-foreground">/night</span>
-              </div>
-              <Button onClick={handleBooking} disabled={isPending}>
-                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Book Now
-              </Button>
-            </CardFooter>
-          </div>
+                    <div>
+                        <DateRangePicker onSelect={setDateRange} />
+                    </div>
+                </CardContent>
+                <CardFooter className="bg-secondary/50 p-4 flex justify-between items-center">
+                    <div>
+                        <span className="text-2xl font-bold">${room.price}</span>
+                        <span className="text-sm text-muted-foreground">/night</span>
+                    </div>
+                    <Button onClick={handleBooking} disabled={isPending || !dateRange?.from}>
+                        {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Book Now
+                    </Button>
+                </CardFooter>
+            </div>
         </div>
-      </Card>
-    </>
+    </Card>
   )
 }

@@ -128,32 +128,20 @@ const fromFirestore = <T>(docSnap: any): T => {
 
 // Auth functions
 export const authenticateUser = async (email: string, password: string): Promise<User | null> => {
-    // Hardcoded superuser for debugging.
-    if (email === 'superuser@lodgify.lite' && password === 'superpass') {
-        console.log("Authenticated via hardcoded superuser.");
-        return {
-            id: 'superuser-id',
-            name: 'Super User',
-            email: 'superuser@lodgify.lite',
-            role: 'admin',
-            createdAt: new Date(),
-        };
-    }
-    
-    const allUsers = [...sampleUsers];
-    const user = allUsers.find(u => u.email === email && u.password === password);
-
-    if (user) {
-        return user;
+    // Check in-memory users first (includes newly signed up users)
+    const memoryUser = sampleUsers.find(u => u.email === email && u.password === password);
+    if (memoryUser) {
+        console.log("Authenticated via in-memory user data.");
+        return memoryUser;
     }
 
-    // Original Firestore authentication logic
+    // Fallback to Firestore for persistent users (if any)
     try {
         const q = query(usersCol, where("email", "==", email));
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
-            console.log("No user found with that email.");
+            console.log("No user found with that email in Firestore.");
             return null;
         }
         
@@ -161,6 +149,7 @@ export const authenticateUser = async (email: string, password: string): Promise
         const dbUser = fromFirestore<User>(userDoc);
 
         if (dbUser && dbUser.password === password) {
+            console.log("Authenticated via Firestore.");
             return dbUser;
         }
         
@@ -181,7 +170,7 @@ export const createUser = async (userData: NewUser): Promise<User> => {
     }
 
     const newUser: User = {
-      id: `user-${sampleUsers.length + 1}`,
+      id: `user-${Date.now()}`, // Use a more unique ID
       ...userData,
       createdAt: new Date(),
     };
@@ -190,7 +179,18 @@ export const createUser = async (userData: NewUser): Promise<User> => {
 };
 
 export const getUserById = async (id: string): Promise<User | undefined> => {
-    return sampleUsers.find(u => u.id === id);
+    const user = sampleUsers.find(u => u.id === id);
+    if (user) {
+        return user;
+    }
+    // Fallback to check Firestore if not in-memory
+    try {
+        const userDoc = await getDoc(doc(usersCol, id));
+        return fromFirestore<User>(userDoc);
+    } catch (error) {
+        console.error("Error fetching user by ID from Firestore:", error);
+        return undefined;
+    }
 };
 
 
@@ -239,7 +239,7 @@ export const getRoomById = async (id: string): Promise<Room | undefined> => {
 };
 
 export const updateHotelStatus = async (id: string, status: 'approved' | 'rejected'): Promise<void> => {
-    const hotel = sampleHotels.find(r => r.id === id);
+    const hotel = sampleHotels.find(h => h.id === id);
     if(hotel) {
         hotel.status = status;
     }
@@ -356,7 +356,5 @@ export const getBookingsByOwner = async (ownerId: string): Promise<Booking[]> =>
 
 export const getAllBookings = async (): Promise<Booking[]> => {
     // In a real app this would likely have pagination
-    return sampleBookings.sort((a, b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
+    return [...sampleBookings].sort((a, b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
 }
-
-    
