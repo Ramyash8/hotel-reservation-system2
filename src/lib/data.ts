@@ -32,9 +32,9 @@ const sampleHotels: Hotel[] = [
         name: 'Santorini Seaside Escape',
         location: 'Oia, Greece',
         description: 'Nestled on the cliffs of Oia, our hotel offers stunning sunsets and direct access to the azure waters of the Aegean Sea.',
-        ownerId: 'user-2',
-        ownerName: 'Bob Guest',
-        ownerEmail: 'bob@example.com',
+        ownerId: 'user-1',
+        ownerName: 'Alice Owner',
+        ownerEmail: 'alice@example.com',
         status: 'approved',
         coverImage: 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/678234743.jpg?k=acee705a06f3347cd2f3d53609a536b772a99eda3603c4eb5ef136e5e6cd6204&o=',
         category: 'Boutique',
@@ -358,3 +358,5 @@ export const getAllBookings = async (): Promise<Booking[]> => {
     // In a real app this would likely have pagination
     return sampleBookings.sort((a, b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
 }
+
+    
