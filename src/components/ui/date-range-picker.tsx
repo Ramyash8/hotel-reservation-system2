@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -24,10 +25,12 @@ export function DateRangePicker({
   initialDateRange,
   onSelect
 }: DateRangePickerProps) {
-  const [date, setDate] = React.useState<DateRange | undefined>(initialDateRange || {
-    from: new Date(),
-    to: new Date(new Date().setDate(new Date().getDate() + 7)),
-  })
+  const [date, setDate] = React.useState<DateRange | undefined>(initialDateRange)
+
+  React.useEffect(() => {
+    // Keep internal state in sync if the initial prop changes
+    setDate(initialDateRange);
+  }, [initialDateRange])
 
   const handleSelect = (selectedDate: DateRange | undefined) => {
     setDate(selectedDate);
