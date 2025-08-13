@@ -54,6 +54,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(authenticatedUser);
         return authenticatedUser;
       }
+      // Ensure user is logged out if auth fails
+      localStorage.removeItem("userId");
+      setUser(null);
       return null;
     } catch (error) {
       console.error("Login failed:", error);
