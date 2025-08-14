@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -13,9 +14,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { AddHotelInfoForm, addHotelInfoSchema } from "./add-hotel-info-form";
 import { AddHotelFacilitiesForm, addHotelFacilitiesSchema } from "./add-hotel-facilities-form";
+import { AddHotelRoomsForm, addHotelRoomsSchema } from "./add-hotel-rooms-form";
+import { AddHotelDocumentsForm, addHotelDocumentsSchema } from "./add-hotel-documents-form";
 
 
-const addHotelFormSchema = addHotelInfoSchema.merge(addHotelFacilitiesSchema);
+const addHotelFormSchema = addHotelInfoSchema
+  .merge(addHotelFacilitiesSchema)
+  .merge(addHotelRoomsSchema)
+  .merge(addHotelDocumentsSchema);
 
 type AddHotelFormValues = z.infer<typeof addHotelFormSchema>;
 
@@ -32,14 +38,15 @@ const defaultValues: Partial<AddHotelFormValues> = {
   checkOutTime: "11:00",
   cancellationPolicy: "",
   isPetFriendly: false,
+  documents: [],
 };
 
 
 const steps = [
   { id: '1', name: 'Info', component: AddHotelInfoForm, schema: addHotelInfoSchema },
   { id: '2', name: 'Facilities', component: AddHotelFacilitiesForm, schema: addHotelFacilitiesSchema },
-  { id: '3', name: 'Rooms' },
-  { id: '4', name: 'Documents' },
+  { id: '3', name: 'Rooms', component: AddHotelRoomsForm, schema: addHotelRoomsSchema },
+  { id: '4', name: 'Documents', component: AddHotelDocumentsForm, schema: addHotelDocumentsSchema },
 ];
 
 export function AddHotelForm({ onFinished }: { onFinished: () => void }) {
@@ -66,12 +73,30 @@ export function AddHotelForm({ onFinished }: { onFinished: () => void }) {
     }
     setIsSubmitting(true);
     try {
+      // In a real app, you would handle file uploads here to a service like Firebase Storage
+      // and get back URLs to store in Firestore. For this demo, we'll just use the file names.
+      const documentsForDb = data.documents.map(doc => ({
+          name: doc.name,
+          url: `placeholder/path/for/${doc.name}` // Placeholder URL
+      }));
+
       await createHotel({
-        ...data,
+        name: data.name,
+        location: data.location,
+        description: data.description,
+        address: data.address,
+        phone: data.phone,
+        email: data.email,
+        website: data.website || '',
+        facilities: data.facilities,
+        checkInTime: data.checkInTime,
+        checkOutTime: data.checkOutTime,
+        cancellationPolicy: data.cancellationPolicy,
+        isPetFriendly: data.isPetFriendly,
+        documents: documentsForDb,
         ownerId: user.id,
         ownerName: user.name,
         ownerEmail: user.email,
-        website: data.website || '',
       });
       toast({
         title: "Hotel Submitted",
@@ -80,6 +105,7 @@ export function AddHotelForm({ onFinished }: { onFinished: () => void }) {
       methods.reset();
       onFinished();
     } catch (error) {
+        console.error(error);
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
@@ -93,8 +119,8 @@ export function AddHotelForm({ onFinished }: { onFinished: () => void }) {
   const nextStep = async () => {
     const currentStepSchema = steps[currentStep - 1].schema;
     if (currentStepSchema) {
-        const isValid = await methods.trigger(Object.keys(currentStepSchema.shape) as any);
-        if (isValid) {
+        const output = await methods.trigger(Object.keys(currentStepSchema.shape) as any, { shouldFocus: true });
+        if (output) {
             setCurrentStep(prev => Math.min(prev + 1, steps.length));
         }
     }
@@ -141,7 +167,18 @@ export function AddHotelForm({ onFinished }: { onFinished: () => void }) {
 
                 <FormProvider {...methods}>
                     <form onSubmit={methods.handleSubmit(onSubmit)}>
-                        {ActiveStepComponent && <ActiveStepComponent />}
+                        <div style={{ display: currentStep === 1 ? 'block' : 'none' }}>
+                            <AddHotelInfoForm />
+                        </div>
+                         <div style={{ display: currentStep === 2 ? 'block' : 'none' }}>
+                            <AddHotelFacilitiesForm />
+                        </div>
+                         <div style={{ display: currentStep === 3 ? 'block' : 'none' }}>
+                            <AddHotelRoomsForm />
+                        </div>
+                         <div style={{ display: currentStep === 4 ? 'block' : 'none' }}>
+                            <AddHotelDocumentsForm />
+                        </div>
 
                         <div className="flex justify-between pt-8">
                             {currentStep > 1 ? (
@@ -168,4 +205,3 @@ export function AddHotelForm({ onFinished }: { onFinished: () => void }) {
     </div>
   );
 }
-

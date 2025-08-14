@@ -1,3 +1,4 @@
+
 import { Timestamp } from 'firebase/firestore';
 
 export type User = {
@@ -13,6 +14,11 @@ export type User = {
 
 export type NewUser = Omit<User, 'id' | 'createdAt'>;
 
+export type HotelDocument = {
+    name: string;
+    url: string;
+}
+
 export type Hotel = {
   id: string;
   name: string;
@@ -27,6 +33,7 @@ export type Hotel = {
   checkOutTime: string;
   cancellationPolicy: string;
   isPetFriendly: boolean;
+  documents: HotelDocument[];
   ownerId: string;
   status: 'pending' | 'approved' | 'rejected';
   coverImage: string;

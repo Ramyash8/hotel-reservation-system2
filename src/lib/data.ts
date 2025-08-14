@@ -1,4 +1,5 @@
 
+
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp } from 'firebase/firestore';
 import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom, NewBooking } from './types';
@@ -22,6 +23,12 @@ const sampleHotels: Hotel[] = [
         phone: '+90 212 555 1234',
         email: 'reservations@grandpalace.com',
         website: 'https://grandpalace.com',
+        facilities: ['wifi', 'parking', 'restaurant', 'gym', 'pool', 'spa'],
+        checkInTime: '15:00',
+        checkOutTime: '11:00',
+        cancellationPolicy: 'Full refund for cancellations made at least 48 hours before check-in. No refund for cancellations made within 48 hours of check-in.',
+        isPetFriendly: true,
+        documents: [],
         ownerId: 'user-1',
         ownerName: 'Alice Owner',
         ownerEmail: 'alice@example.com',
@@ -40,6 +47,12 @@ const sampleHotels: Hotel[] = [
         phone: '+30 22860 71234',
         email: 'info@santoriniescape.com',
         website: 'https://santoriniescape.com',
+        facilities: ['wifi', 'pool'],
+        checkInTime: '14:00',
+        checkOutTime: '12:00',
+        cancellationPolicy: 'Full refund for cancellations made at least 7 days before check-in.',
+        isPetFriendly: false,
+        documents: [],
         ownerId: 'user-1',
         ownerName: 'Alice Owner',
         ownerEmail: 'alice@example.com',
@@ -58,6 +71,12 @@ const sampleHotels: Hotel[] = [
         phone: '+90 312 555 5678',
         email: 'contact@cityhubankara.com',
         website: 'https://cityhubankara.com',
+        facilities: ['wifi', 'parking', 'gym'],
+        checkInTime: '15:00',
+        checkOutTime: '12:00',
+        cancellationPolicy: 'Flexible cancellation policy up to 24 hours before check-in.',
+        isPetFriendly: false,
+        documents: [],
         ownerId: 'user-1',
         ownerName: 'Alice Owner',
         ownerEmail: 'alice@example.com',
