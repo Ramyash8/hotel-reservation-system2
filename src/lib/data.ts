@@ -81,7 +81,7 @@ export const getUserById = async (id: string): Promise<User | undefined> => {
 
 // --- Hotel functions ---
 export const getApprovedHotels = async (): Promise<Hotel[]> => {
-    const q = query(hotelsCol, where('status', '==', 'approved'), orderBy('createdAt', 'desc'));
+    const q = query(hotelsCol, where('status', '==', 'approved'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
 };
@@ -104,7 +104,7 @@ export const searchHotels = async (criteria: HotelSearchCriteria): Promise<Hotel
 };
 
 export const getPendingHotels = async (): Promise<Hotel[]> => {
-    const q = query(hotelsCol, where('status', '==', 'pending'), orderBy('createdAt', 'desc'));
+    const q = query(hotelsCol, where('status', '==', 'pending'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
 };
@@ -115,7 +115,7 @@ export const getHotelById = async (id: string): Promise<Hotel | undefined> => {
 };
 
 export const getHotelsByOwner = async (ownerId: string): Promise<Hotel[]> => {
-    const q = query(hotelsCol, where('ownerId', '==', ownerId), orderBy('createdAt', 'desc'));
+    const q = query(hotelsCol, where('ownerId', '==', ownerId));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
 };
@@ -137,7 +137,7 @@ export const updateHotelStatus = async (id: string, status: 'approved' | 'reject
 
 // --- Room functions ---
 export const getPendingRooms = async (): Promise<Room[]> => {
-    const q = query(roomsCol, where('status', '==', 'pending'), orderBy('createdAt', 'desc'));
+    const q = query(roomsCol, where('status', '==', 'pending'));
     const snapshot = await getDocs(q);
     const rooms = snapshot.docs.map(doc => fromFirestore<Room>(doc));
 
@@ -237,19 +237,19 @@ export const createBooking = async (bookingData: NewBooking): Promise<Booking> =
 };
 
 export const getBookingsByUser = async (userId: string): Promise<Booking[]> => {
-    const q = query(bookingsCol, where('userId', '==', userId), orderBy('createdAt', 'desc'));
+    const q = query(bookingsCol, where('userId', '==', userId));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => fromFirestore<Booking>(doc));
 };
 
 export const getBookingsByOwner = async (ownerId: string): Promise<Booking[]> => {
-    const q = query(bookingsCol, where('hotelOwnerId', '==', ownerId), orderBy('createdAt', 'desc'));
+    const q = query(bookingsCol, where('hotelOwnerId', '==', ownerId));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => fromFirestore<Booking>(doc));
 };
 
 export const getAllBookings = async (): Promise<Booking[]> => {
-    const q = query(bookingsCol, orderBy('createdAt', 'desc'));
+    const q = query(bookingsCol);
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => fromFirestore<Booking>(doc));
 };
