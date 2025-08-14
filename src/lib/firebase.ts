@@ -1,6 +1,6 @@
 
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp, writeBatch, doc } from 'firebase/firestore';
 import type { NewHotel, NewRoom, NewUser } from './types';
 
 
@@ -37,7 +37,7 @@ const sampleHotels: Omit<NewHotel, 'ownerId' | 'ownerName' | 'ownerEmail'>[] = [
 
 // --- Seeding Functions ---
 
-const seedCollection = async <T>(collectionName: string, data: T[], checkField: keyof T) => {
+const seedCollection = async <T extends object>(collectionName: string, data: T[], checkField?: keyof T) => {
     const collectionRef = collection(db, collectionName);
     console.log(`Checking if ${collectionName} collection needs seeding...`);
     
@@ -45,18 +45,19 @@ const seedCollection = async <T>(collectionName: string, data: T[], checkField: 
     const initialCheck = await getDocs(query(collectionRef));
     if (!initialCheck.empty) {
         console.log(`${collectionName} collection already contains data. Seeding skipped.`);
-        return [];
+        const docs = initialCheck.docs.map(doc => ({ ...doc.data() as T, id: doc.id }));
+        return docs;
     }
     
     console.log(`${collectionName} collection is empty. Seeding data...`);
     const batch = writeBatch(db);
-    const docRefs = [];
+    const docRefs: (T & { id: string })[] = [];
 
     for (const item of data) {
-        const docRef = doc(collectionRef);
-        batch.set(docRef, { ...item, createdAt: serverTimestamp() });
+        const newDocRef = doc(collectionRef);
+        batch.set(newDocRef, { ...item, createdAt: serverTimestamp() });
         // We add the id to the item so we can use it later when seeding dependent collections
-        docRefs.push({ ...item, id: docRef.id });
+        docRefs.push({ ...item, id: newDocRef.id });
     }
 
     await batch.commit();
@@ -65,30 +66,27 @@ const seedCollection = async <T>(collectionName: string, data: T[], checkField: 
 };
 
 const seedDatabase = async () => {
-    const users = await seedCollection<NewUser>('users', sampleUsers, 'email');
+    try {
+        const users = await seedCollection<NewUser>('users', sampleUsers, 'email');
 
-    // Find our sample owner to assign hotels to
-    const owner = users.find(u => u.role === 'owner') || await (async () => {
-        const ownerQuery = query(collection(db, 'users'), where('role', '==', 'owner'));
-        const snapshot = await getDocs(ownerQuery);
-        if (!snapshot.empty) {
-            const doc = snapshot.docs[0];
-            return { ...doc.data() as NewUser, id: doc.id };
+        const owner = users.find(u => u.role === 'owner');
+
+        if (owner) {
+            const hotelsToSeed = sampleHotels.map(hotel => ({
+                ...hotel,
+                ownerId: owner.id,
+                ownerName: owner.name,
+                ownerEmail: owner.email,
+                status: 'approved' as const, // Ensure hotels are approved
+            }));
+            await seedCollection<Omit<NewHotel, 'ownerId' | 'ownerName' | 'ownerEmail'> & { ownerId: string, ownerName: string, ownerEmail: string, status: 'approved' }>('hotels', hotelsToSeed, 'name');
+        } else {
+            console.log("Could not find an owner to seed hotels for.");
         }
-        return null;
-    })();
-
-    if (owner) {
-        const hotelsToSeed = sampleHotels.map(hotel => ({
-            ...hotel,
-            ownerId: owner.id,
-            ownerName: owner.name,
-            ownerEmail: owner.email,
-        }));
-        await seedCollection<NewHotel>('Hotels', hotelsToSeed, 'name');
-    } else {
-        console.log("Could not find an owner to seed hotels for.");
+    } catch (error) {
+        console.error("Error seeding database:", error);
     }
 };
 
-seedDatabase().catch(console.error);
+// Immediately invoke the seeding function
+seedDatabase();
