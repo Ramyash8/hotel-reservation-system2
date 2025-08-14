@@ -34,12 +34,14 @@ const fromFirestore = <T extends { id: string }>(docSnap: any): T | undefined =>
         id: docSnap.id,
     };
 
-    // Manually map fields to ensure correct typing and timestamp conversion
     for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key) && data[key] instanceof Timestamp) {
-            result[key] = data[key].toDate();
-        } else {
-            result[key] = data[key];
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+            const value = data[key];
+            if (value instanceof Timestamp) {
+                result[key] = value.toDate();
+            } else {
+                result[key] = value;
+            }
         }
     }
     
@@ -306,3 +308,5 @@ export const getAllBookings = async (): Promise<Booking[]> => {
     const bookings = snapshot.docs.map(doc => fromFirestore<Booking>(doc)).filter(Boolean) as Booking[];
     return bookings.sort((a, b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
 }
+
+    
