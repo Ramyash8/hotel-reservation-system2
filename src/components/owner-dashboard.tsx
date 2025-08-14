@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useTransition } from "react";
@@ -24,25 +23,28 @@ export function OwnerDashboard() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [isAddingHotel, setIsAddingHotel] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
-      const fetchData = async () => {
-        setLoading(true);
-        const [ownerHotels, ownerRooms, ownerBookings] = await Promise.all([
-          getHotelsByOwner(user.id),
-          getRoomsByOwner(user.id),
-          getBookingsByOwner(user.id)
-        ]);
-        setHotels(ownerHotels);
-        setRooms(ownerRooms);
-        setBookings(ownerBookings);
-        setLoading(false);
-      };
       fetchData();
     }
   }, [user?.id]);
+
+  const fetchData = async () => {
+    if(!user?.id) return;
+    setLoading(true);
+    const [ownerHotels, ownerRooms, ownerBookings] = await Promise.all([
+      getHotelsByOwner(user.id),
+      getRoomsByOwner(user.id),
+      getBookingsByOwner(user.id)
+    ]);
+    setHotels(ownerHotels);
+    setRooms(ownerRooms);
+    setBookings(ownerBookings);
+    setLoading(false);
+  };
+
 
   if (loading) {
     return (
@@ -54,12 +56,15 @@ export function OwnerDashboard() {
 
   const approvedHotels = hotels.filter(h => h.status === 'approved');
 
-  if (activeTab === 'add-hotel') {
-    return <AddHotelForm />;
+  if (isAddingHotel) {
+    return <AddHotelForm onFinished={() => {
+      setIsAddingHotel(false);
+      fetchData(); // Refresh data after adding a hotel
+    }} />;
   }
 
   return (
-    <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab}>
+    <Tabs defaultValue="dashboard">
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-4">
             <Briefcase className="h-10 w-10 text-primary" />
@@ -68,7 +73,7 @@ export function OwnerDashboard() {
                 <p className="text-muted-foreground">Manage your hotels and bookings.</p>
             </div>
         </div>
-         <Button onClick={() => setActiveTab('add-hotel')}>
+         <Button onClick={() => setIsAddingHotel(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Add New Hotel
           </Button>
@@ -183,7 +188,7 @@ export function OwnerDashboard() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Guest</TableHead>
-                            <TableHead>Hotel & Room</TableHead>
+                            <TableHead>Hotel &amp; Room</TableHead>
                             <TableHead>Dates</TableHead>
                             <TableHead className="text-right">Total Paid</TableHead>
                         </TableRow>

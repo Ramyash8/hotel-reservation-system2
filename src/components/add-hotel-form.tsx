@@ -1,37 +1,21 @@
-
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { createHotel } from "@/lib/data";
 import { Card, CardContent } from "./ui/card";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import { AddHotelInfoForm, addHotelInfoSchema } from "./add-hotel-info-form";
+import { AddHotelFacilitiesForm, addHotelFacilitiesSchema } from "./add-hotel-facilities-form";
 
-const addHotelFormSchema = z.object({
-  name: z.string().min(2, { message: "Hotel name must be at least 2 characters." }),
-  location: z.string().min(2, { message: "Location must be at least 2 characters." }),
-  description: z.string().min(10, { message: "Description must be at least 10 characters." }),
-  address: z.string().min(10, { message: "Full address must be at least 10 characters." }),
-  phone: z.string().min(10, { message: "Please enter a valid phone number." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  website: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
-});
+
+const addHotelFormSchema = addHotelInfoSchema.merge(addHotelFacilitiesSchema);
 
 type AddHotelFormValues = z.infer<typeof addHotelFormSchema>;
 
@@ -43,25 +27,33 @@ const defaultValues: Partial<AddHotelFormValues> = {
   phone: "",
   email: "",
   website: "",
+  facilities: [],
+  checkInTime: "15:00",
+  checkOutTime: "11:00",
+  cancellationPolicy: "",
+  isPetFriendly: false,
 };
 
+
 const steps = [
-  { id: '1', name: 'Info' },
-  { id: '2', name: 'Facilities' },
+  { id: '1', name: 'Info', component: AddHotelInfoForm, schema: addHotelInfoSchema },
+  { id: '2', name: 'Facilities', component: AddHotelFacilitiesForm, schema: addHotelFacilitiesSchema },
   { id: '3', name: 'Rooms' },
   { id: '4', name: 'Documents' },
 ];
 
-export function AddHotelForm() {
+export function AddHotelForm({ onFinished }: { onFinished: () => void }) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const currentStep = 1;
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<AddHotelFormValues>({
+  const methods = useForm<AddHotelFormValues>({
     resolver: zodResolver(addHotelFormSchema),
     defaultValues,
     mode: "onChange",
   });
+
 
   const onSubmit = async (data: AddHotelFormValues) => {
     if (!user) {
@@ -72,6 +64,7 @@ export function AddHotelForm() {
       });
       return;
     }
+    setIsSubmitting(true);
     try {
       await createHotel({
         ...data,
@@ -84,15 +77,35 @@ export function AddHotelForm() {
         title: "Hotel Submitted",
         description: "Your new hotel has been submitted for approval.",
       });
-      form.reset();
+      methods.reset();
+      onFinished();
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
         description: "There was a problem with your request.",
       });
+    } finally {
+        setIsSubmitting(false);
     }
   };
+
+  const nextStep = async () => {
+    const currentStepSchema = steps[currentStep - 1].schema;
+    if (currentStepSchema) {
+        const isValid = await methods.trigger(Object.keys(currentStepSchema.shape) as any);
+        if (isValid) {
+            setCurrentStep(prev => Math.min(prev + 1, steps.length));
+        }
+    }
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+
+  const ActiveStepComponent = steps[currentStep - 1].component;
 
   return (
     <div>
@@ -126,115 +139,33 @@ export function AddHotelForm() {
                     </div>
                 </div>
 
-                <h2 className="text-xl font-semibold mb-6">Basic Information</h2>
+                <FormProvider {...methods}>
+                    <form onSubmit={methods.handleSubmit(onSubmit)}>
+                        {ActiveStepComponent && <ActiveStepComponent />}
 
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FormField
-                                control={form.control}
-                                name="name"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Hotel Name *</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name="location"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Location (City, State) *</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                         <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Hotel Description *</FormLabel>
-                                <FormControl>
-                                    <Textarea className="resize-none h-24" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
+                        <div className="flex justify-between pt-8">
+                            {currentStep > 1 ? (
+                                <Button type="button" variant="outline" onClick={prevStep}>
+                                    Back
+                                </Button>
+                            ) : <div></div>}
+
+                            {currentStep < steps.length ? (
+                                <Button type="button" onClick={nextStep}>
+                                    Next
+                                </Button>
+                            ) : (
+                                <Button type="submit" disabled={isSubmitting}>
+                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Submit for Approval
+                                </Button>
                             )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="address"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Full Address *</FormLabel>
-                                <FormControl>
-                                    <Textarea className="resize-none h-24" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <FormField
-                                control={form.control}
-                                name="phone"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Phone Number *</FormLabel>
-                                    <FormControl>
-                                        <Input type="tel" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name="email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Email Address *</FormLabel>
-                                    <FormControl>
-                                        <Input type="email" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name="website"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Website</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="flex justify-end pt-4">
-                            <Button type="submit" disabled={form.formState.isSubmitting} size="lg">
-                                {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Save & Continue
-                            </Button>
                         </div>
                     </form>
-                </Form>
+                </FormProvider>
             </CardContent>
         </Card>
     </div>
   );
 }
+

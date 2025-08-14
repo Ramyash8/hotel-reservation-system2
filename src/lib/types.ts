@@ -1,4 +1,3 @@
-
 import { Timestamp } from 'firebase/firestore';
 
 export type User = {
@@ -23,6 +22,11 @@ export type Hotel = {
   phone: string;
   email: string;
   website?: string;
+  facilities: string[];
+  checkInTime: string;
+  checkOutTime: string;
+  cancellationPolicy: string;
+  isPetFriendly: boolean;
   ownerId: string;
   status: 'pending' | 'approved' | 'rejected';
   coverImage: string;
