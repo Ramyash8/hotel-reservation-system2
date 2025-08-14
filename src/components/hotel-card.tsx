@@ -15,7 +15,7 @@ export function HotelCard({ hotel, variant = 'default' }: HotelCardProps) {
   if (variant === 'compact') {
     return (
       <div className="group cursor-pointer">
-        <div className="relative aspect-square w-full overflow-hidden rounded-xl">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl">
            <Image
               src={hotel.coverImage}
               alt={`Exterior of ${hotel.name}`}
