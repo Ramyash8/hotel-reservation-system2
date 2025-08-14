@@ -75,7 +75,7 @@ export function AddHotelForm({ onFinished }: { onFinished: () => void }) {
     try {
       // In a real app, you would handle file uploads here to a service like Firebase Storage
       // and get back URLs to store in Firestore. For this demo, we'll just use the file names.
-      const documentsForDb = data.documents.map(doc => ({
+      const documentsForDb = (data.documents || []).map(doc => ({
           name: doc.name,
           url: `placeholder/path/for/${doc.name}` // Placeholder URL
       }));

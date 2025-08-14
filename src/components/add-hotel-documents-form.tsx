@@ -21,12 +21,11 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 
 export const addHotelDocumentsSchema = z.object({
   documents: z.array(z.instanceof(File))
-    .min(1, "Please upload at least one document.")
     .refine(files => files.every(file => file.size <= MAX_FILE_SIZE), `Max file size is 5MB.`)
     .refine(
       files => files.every(file => ACCEPTED_IMAGE_TYPES.includes(file.type)),
       "Only .jpg, .jpeg, .png, .webp and .pdf formats are supported."
-    ),
+    ).optional(),
 });
 
 
@@ -56,14 +55,14 @@ export function AddHotelDocumentsForm() {
         <div className="space-y-8">
             <h2 className="text-xl font-semibold">Verification Documents</h2>
             <FormDescription>
-                Please upload documents for verification purposes. e.g., Business License, Property Ownership Deed.
+                Please upload documents for verification purposes. e.g., Business License, Property Ownership Deed. (Optional)
             </FormDescription>
             <FormField
                 control={control}
                 name="documents"
                 render={({ fieldState }) => (
                     <FormItem>
-                        <FormLabel>Required Documents</FormLabel>
+                        <FormLabel>Verification Documents</FormLabel>
                         <FormControl>
                             <div className="relative border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center">
                                 <div className="flex flex-col items-center space-y-2">
