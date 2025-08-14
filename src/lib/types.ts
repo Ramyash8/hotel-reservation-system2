@@ -19,6 +19,10 @@ export type Hotel = {
   name: string;
   location: string;
   description: string;
+  address: string;
+  phone: string;
+  email: string;
+  website?: string;
   ownerId: string;
   status: 'pending' | 'approved' | 'rejected';
   coverImage: string;

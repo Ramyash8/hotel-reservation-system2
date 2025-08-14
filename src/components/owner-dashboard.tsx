@@ -10,11 +10,12 @@ import { AddRoomForm } from "./add-room-form";
 import { getHotelsByOwner, getRoomsByOwner, getBookingsByOwner } from "@/lib/data";
 import { useAuth } from "@/hooks/use-auth";
 import type { Hotel, Room, Booking } from "@/lib/types";
-import { Loader2, User, Calendar } from "lucide-react";
+import { Loader2, User, Calendar, PlusCircle } from "lucide-react";
 import { HotelCard } from "./hotel-card";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
+import { Button } from "./ui/button";
 
 
 export function OwnerDashboard() {
@@ -23,6 +24,7 @@ export function OwnerDashboard() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
     if (user?.id) {
@@ -52,12 +54,28 @@ export function OwnerDashboard() {
 
   const approvedHotels = hotels.filter(h => h.status === 'approved');
 
+  if (activeTab === 'add-hotel') {
+    return <AddHotelForm />;
+  }
+
   return (
-    <Tabs defaultValue="dashboard">
-      <TabsList className="grid w-full grid-cols-4">
+    <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab}>
+      <div className="flex justify-between items-center mb-8">
+        <div className="flex items-center gap-4">
+            <Briefcase className="h-10 w-10 text-primary" />
+            <div>
+                <h1 className="text-4xl font-headline font-bold">Owner Dashboard</h1>
+                <p className="text-muted-foreground">Manage your hotels and bookings.</p>
+            </div>
+        </div>
+         <Button onClick={() => setActiveTab('add-hotel')}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add New Hotel
+          </Button>
+      </div>
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         <TabsTrigger value="hotels">My Hotels <Badge className="ml-2">{hotels.length}</Badge></TabsTrigger>
-        <TabsTrigger value="rooms">My Rooms <Badge className="ml-2">{rooms.length}</Badge></TabsTrigger>
         <TabsTrigger value="bookings">Bookings <Badge className="ml-2">{bookings.length}</Badge></TabsTrigger>
       </TabsList>
       
@@ -94,7 +112,6 @@ export function OwnerDashboard() {
       </TabsContent>
 
       <TabsContent value="hotels" className="space-y-6">
-        <AddHotelForm />
         <div>
             <h2 className="text-2xl font-headline font-bold mb-4">Your Hotels</h2>
             {hotels.length > 0 ? (
@@ -113,46 +130,45 @@ export function OwnerDashboard() {
                 </Card>
             )}
         </div>
-      </TabsContent>
-
-      <TabsContent value="rooms" className="space-y-6">
-        <AddRoomForm ownerHotels={approvedHotels} />
-         <div>
-            <h2 className="text-2xl font-headline font-bold mb-4">Your Rooms</h2>
-             <Card>
-                <CardContent className="p-0">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Room Title</TableHead>
-                                <TableHead>Hotel</TableHead>
-                                <TableHead>Price</TableHead>
-                                <TableHead>Status</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {rooms.length > 0 ? rooms.map(room => (
-                                <TableRow key={room.id}>
-                                    <TableCell className="font-medium">{room.title}</TableCell>
-                                    <TableCell>{hotels.find(h => h.id === room.hotelId)?.name || 'N/A'}</TableCell>
-                                    <TableCell>${room.price}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={room.status === 'approved' ? 'default' : 'secondary'} className={room.status === 'approved' ? 'bg-green-600/20 text-green-600 border-green-600/20' : ''}>
-                                            {room.status}
-                                        </Badge>
-                                    </TableCell>
-                                </TableRow>
-                            )) : (
+        <div className="space-y-6">
+            <AddRoomForm ownerHotels={approvedHotels} />
+            <div>
+                <h2 className="text-2xl font-headline font-bold mb-4">Your Rooms</h2>
+                <Card>
+                    <CardContent className="p-0">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell colSpan={4} className="h-24 text-center">
-                                        You haven't added any rooms yet.
-                                    </TableCell>
+                                    <TableHead>Room Title</TableHead>
+                                    <TableHead>Hotel</TableHead>
+                                    <TableHead>Price</TableHead>
+                                    <TableHead>Status</TableHead>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+                            </TableHeader>
+                            <TableBody>
+                                {rooms.length > 0 ? rooms.map(room => (
+                                    <TableRow key={room.id}>
+                                        <TableCell className="font-medium">{room.title}</TableCell>
+                                        <TableCell>{hotels.find(h => h.id === room.hotelId)?.name || 'N/A'}</TableCell>
+                                        <TableCell>${room.price}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={room.status === 'approved' ? 'default' : 'secondary'} className={room.status === 'approved' ? 'bg-green-600/20 text-green-600 border-green-600/20' : ''}>
+                                                {room.status}
+                                            </Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="h-24 text-center">
+                                            You haven't added any rooms yet.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
       </TabsContent>
 
