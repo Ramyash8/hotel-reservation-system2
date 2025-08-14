@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import Link from "next/link"
+import { Timestamp } from "firebase/firestore"
 
 const statusIcons = {
     approved: <CheckCircle className="mr-2 h-4 w-4 text-green-500" />,
@@ -87,8 +88,16 @@ export const columns: ColumnDef<Hotel>[] = [
       )
     },
     cell: ({ row }) => {
-        const date = row.getValue("createdAt") as Date
-        return <div>{format(date, "LLL dd, yyyy")}</div>
+        const value = row.getValue("createdAt");
+        if (!value) return null;
+        // The date might be a Firestore Timestamp object, convert it to a JS Date
+        const date = value instanceof Timestamp ? value.toDate() : (value as Date);
+        try {
+            return <div>{format(date, "LLL dd, yyyy")}</div>
+        } catch (e) {
+            console.error("Invalid date format:", date);
+            return <div>Invalid Date</div>
+        }
     }
   },
   {
