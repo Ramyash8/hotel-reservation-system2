@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -10,8 +11,10 @@ export default async function HomePage() {
   const allHotels = await getApprovedHotels();
 
   // Create different categories for demonstration, in a real app this would come from the database
-  const inTurkey = allHotels.filter(h => h.location.toLowerCase().includes('turkey')).slice(0, 2);
-  const inGreece = allHotels.filter(h => h.location.toLowerCase().includes('greece')).slice(0, 1);
+  const inTurkey = allHotels.filter(h => h.location.toLowerCase().includes('turkey')).slice(0, 4);
+  const inGreece = allHotels.filter(h => h.location.toLowerCase().includes('greece')).slice(0, 4);
+  const inItaly = allHotels.filter(h => h.location.toLowerCase().includes('italy')).slice(0, 4);
+  const inJapan = allHotels.filter(h => h.location.toLowerCase().includes('japan')).slice(0, 4);
 
 
   return (
@@ -28,10 +31,10 @@ export default async function HomePage() {
               <h2 className="text-2xl font-bold tracking-tight">Popular homes in Turkey</h2>
               <Button variant="ghost" size="sm">Show all &gt;</Button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {inTurkey.map((hotel) => (
                 <Link href={`/hotel/${hotel.id}`} key={hotel.id}>
-                  <HotelCard hotel={hotel} variant="compact" />
+                  <HotelCard hotel={hotel} />
                 </Link>
               ))}
             </div>
@@ -39,13 +42,41 @@ export default async function HomePage() {
 
           <section className="mt-12">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold tracking-tight">Available in Greece this weekend</h2>
+              <h2 className="text-2xl font-bold tracking-tight">Stays in Greece</h2>
                <Button variant="ghost" size="sm">Show all &gt;</Button>
             </div>
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {inGreece.map((hotel) => (
                 <Link href={`/hotel/${hotel.id}`} key={hotel.id}>
-                  <HotelCard hotel={hotel} variant="compact" />
+                  <HotelCard hotel={hotel} />
+                </Link>
+              ))}
+            </div>
+          </section>
+
+           <section className="mt-12">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold tracking-tight">Postcards from Italy</h2>
+               <Button variant="ghost" size="sm">Show all &gt;</Button>
+            </div>
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {inItaly.map((hotel) => (
+                <Link href={`/hotel/${hotel.id}`} key={hotel.id}>
+                  <HotelCard hotel={hotel} />
+                </Link>
+              ))}
+            </div>
+          </section>
+
+           <section className="mt-12">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold tracking-tight">Unique stays in Japan</h2>
+               <Button variant="ghost" size="sm">Show all &gt;</Button>
+            </div>
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {inJapan.map((hotel) => (
+                <Link href={`/hotel/${hotel.id}`} key={hotel.id}>
+                  <HotelCard hotel={hotel} />
                 </Link>
               ))}
             </div>

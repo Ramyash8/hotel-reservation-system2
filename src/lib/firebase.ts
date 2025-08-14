@@ -25,13 +25,18 @@ const sampleUsers: NewUser[] = [
 ];
 
 const sampleHotels: Omit<NewHotel, 'ownerId' | 'ownerName' | 'ownerEmail'>[] = [
-    { name: 'Aegean Paradise Villa', location: 'Oia, Greece', description: 'Breathtaking sunset views over the caldera. A true Cycladic dream.', category: 'Premium', 'data-ai-hint': 'luxury villa' },
-    { name: 'Cappadocia Cave Suites', location: 'Göreme, Turkey', description: 'Stay in a beautifully restored cave dwelling with all modern comforts.', category: 'Historic', 'data-ai-hint': 'cave hotel' },
-    { name: 'Kyoto Serenity Inn', location: 'Kyoto, Japan', description: 'A traditional Ryokan experience with tatami floors and a peaceful zen garden.', category: 'Boutique', 'data-ai-hint': 'japanese inn' },
-    { name: 'Alpine Ski Lodge', location: 'Chamonix, France', description: 'Ski-in/ski-out access to the best slopes in the Alps.', category: 'Ski Resort', 'data-ai-hint': 'ski lodge' },
-    { name: 'Tuscan Vineyard Escape', location: 'Florence, Italy', description: 'A charming farmhouse surrounded by rolling hills and vineyards.', 'data-ai-hint': 'vineyard farmhouse' },
-    { name: 'Santorini Blue Dome', location: 'Oia, Greece', description: 'Iconic blue-domed stay with a private plunge pool.', 'data-ai-hint': 'santorini dome' },
-    { name: 'Istanbul Bazaar Hotel', location: 'Istanbul, Turkey', description: 'Steps away from the Grand Bazaar, immerse yourself in the vibrant city life.', category: 'Boutique', 'data-ai-hint': 'city hotel' },
+    { name: 'Aegean Paradise Villa', location: 'Oia, Greece', description: 'Breathtaking sunset views over the caldera. A true Cycladic dream.', category: 'Premium', coverImage: 'https://placehold.co/1200x800.png?text=Aegean+Villa', 'data-ai-hint': 'luxury villa' },
+    { name: 'Cappadocia Cave Suites', location: 'Göreme, Turkey', description: 'Stay in a beautifully restored cave dwelling with all modern comforts.', category: 'Historic', coverImage: 'https://placehold.co/1200x800.png?text=Cave+Suite', 'data-ai-hint': 'cave hotel' },
+    { name: 'Kyoto Serenity Inn', location: 'Kyoto, Japan', description: 'A traditional Ryokan experience with tatami floors and a peaceful zen garden.', category: 'Boutique', coverImage: 'https://placehold.co/1200x800.png?text=Kyoto+Inn', 'data-ai-hint': 'japanese inn' },
+    { name: 'Alpine Ski Lodge', location: 'Chamonix, France', description: 'Ski-in/ski-out access to the best slopes in the Alps.', category: 'Ski Resort', coverImage: 'https://placehold.co/1200x800.png?text=Ski+Lodge', 'data-ai-hint': 'ski lodge' },
+    { name: 'Tuscan Vineyard Escape', location: 'Florence, Italy', description: 'A charming farmhouse surrounded by rolling hills and vineyards.', coverImage: 'https://placehold.co/1200x800.png?text=Tuscan+Escape', 'data-ai-hint': 'vineyard farmhouse' },
+    { name: 'Santorini Blue Dome', location: 'Oia, Greece', description: 'Iconic blue-domed stay with a private plunge pool.', coverImage: 'https://placehold.co/1200x800.png?text=Blue+Dome', 'data-ai-hint': 'santorini dome' },
+    { name: 'Istanbul Bazaar Hotel', location: 'Istanbul, Turkey', description: 'Steps away from the Grand Bazaar, immerse yourself in the vibrant city life.', category: 'Boutique', coverImage: 'https://placehold.co/1200x800.png?text=Bazaar+Hotel', 'data-ai-hint': 'city hotel' },
+    { name: 'Amalfi Coast Cliffside', location: 'Positano, Italy', description: 'A stunning hotel carved into the cliffs of the Amalfi Coast.', coverImage: 'https://placehold.co/1200x800.png?text=Amalfi+Coast', 'data-ai-hint': 'cliffside hotel' },
+    { name: 'Tokyo Zen Garden', location: 'Tokyo, Japan', description: 'A minimalist hotel with a serene zen garden in the heart of Tokyo.', coverImage: 'https://placehold.co/1200x800.png?text=Tokyo+Garden', 'data-ai-hint': 'zen garden' },
+    { name: 'Antalya Beach Resort', location: 'Antalya, Turkey', description: 'All-inclusive resort on the beautiful Mediterranean coast.', coverImage: 'https://placehold.co/1200x800.png?text=Beach+Resort', 'data-ai-hint': 'beach resort' },
+    { name: 'Mykonos Windmill Suite', location: 'Mykonos, Greece', description: 'Stay in a converted windmill with panoramic sea views.', coverImage: 'https://placehold.co/1200x800.png?text=Windmill+Suite', 'data-ai-hint': 'windmill hotel' },
+    { name: 'Roman Forum Overlook', location: 'Rome, Italy', description: 'A boutique hotel with views of the ancient Roman Forum.', coverImage: 'https://placehold.co/1200x800.png?text=Rome+Overlook', 'data-ai-hint': 'historic hotel' },
 ];
 
 
@@ -79,7 +84,7 @@ const seedDatabase = async () => {
                 ownerEmail: owner.email,
                 status: 'approved' as const, // Ensure hotels are approved
             }));
-            await seedCollection<Omit<NewHotel, 'ownerId' | 'ownerName' | 'ownerEmail'> & { ownerId: string, ownerName: string, ownerEmail: string, status: 'approved' }>('hotels', hotelsToSeed, 'name');
+            await seedCollection('hotels', hotelsToSeed, 'name');
         } else {
             console.log("Could not find an owner to seed hotels for.");
         }
@@ -88,5 +93,5 @@ const seedDatabase = async () => {
     }
 };
 
-// Immediately invoke the seeding function
+// Immediately invoke the seeding function to ensure data is available on startup
 seedDatabase();
