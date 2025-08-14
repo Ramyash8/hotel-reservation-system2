@@ -30,19 +30,20 @@ import { DataTable } from "./admin/data-table";
 import { columns as allHotelsColumns } from "./admin/all-hotels-columns";
 
 // Helper to convert Firestore doc to our types, handling Timestamps
-const fromFirestore = <T extends { id: string }>(docSnap: any): T => {
+const fromFirestore = <T extends { id: string }>(docSnap: any): T | undefined => {
     if (!docSnap.exists()) {
-        return undefined as any;
+        return undefined;
     }
 
     const data = docSnap.data();
+    if (!data) return undefined;
 
     const result: { [key: string]: any } = {
         id: docSnap.id,
     };
 
     for (const key in data) {
-        if (data[key] instanceof (global?.window?.FirebaseFirestore?.Timestamp || require('firebase/firestore').Timestamp)) {
+        if (Object.prototype.hasOwnProperty.call(data, key) && data[key] instanceof (global?.window?.FirebaseFirestore?.Timestamp || require('firebase/firestore').Timestamp)) {
             result[key] = data[key].toDate();
         } else {
             result[key] = data[key];
@@ -70,14 +71,14 @@ export function AdminDashboard() {
     const bookingsQuery = query(collection(db, 'bookings'));
 
     const unsubscribeHotels = onSnapshot(hotelsQuery, (snapshot) => {
-        const hotelsData = snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
+        const hotelsData = snapshot.docs.map(doc => fromFirestore<Hotel>(doc)).filter(Boolean) as Hotel[];
         setAllHotels(hotelsData);
         setPendingHotels(hotelsData.filter(h => h.status === 'pending'));
         setLoading(false);
     });
 
     const unsubscribeRooms = onSnapshot(roomsQuery, async (snapshot) => {
-        const roomsData = snapshot.docs.map(doc => fromFirestore<Room>(doc));
+        const roomsData = snapshot.docs.map(doc => fromFirestore<Room>(doc)).filter(Boolean) as Room[];
         const enrichedRooms = await Promise.all(roomsData.map(async (room) => {
              const hotelDocRef = doc(db, 'hotels', room.hotelId);
              const hotelDoc = await getDoc(hotelDocRef);
@@ -89,7 +90,7 @@ export function AdminDashboard() {
     });
 
     const unsubscribeBookings = onSnapshot(bookingsQuery, (snapshot) => {
-        const bookingsData = snapshot.docs.map(doc => fromFirestore<Booking>(doc));
+        const bookingsData = snapshot.docs.map(doc => fromFirestore<Booking>(doc)).filter(Boolean) as Booking[];
         setBookings(bookingsData);
         setLoading(false);
     });
@@ -331,5 +332,3 @@ export function AdminDashboard() {
     </Tabs>
   );
 }
-
-    
