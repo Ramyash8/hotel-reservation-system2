@@ -25,7 +25,7 @@ import Image from "next/image";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { format } from "date-fns";
 import { db } from "@/lib/firebase";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { DataTable } from "./admin/data-table";
 import { columns as allHotelsColumns } from "./admin/all-hotels-columns";
 
@@ -79,7 +79,8 @@ export function AdminDashboard() {
     const unsubscribeRooms = onSnapshot(roomsQuery, async (snapshot) => {
         const roomsData = snapshot.docs.map(doc => fromFirestore<Room>(doc));
         const enrichedRooms = await Promise.all(roomsData.map(async (room) => {
-             const hotelDoc = await db.collection('hotels').doc(room.hotelId).get();
+             const hotelDocRef = doc(db, 'hotels', room.hotelId);
+             const hotelDoc = await getDoc(hotelDocRef);
              const hotel = fromFirestore<Hotel>(hotelDoc);
              return { ...room, hotelName: hotel ? hotel.name : 'Unknown Hotel' };
         }));
@@ -287,7 +288,7 @@ export function AdminDashboard() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Guest</TableHead>
-                            <TableHead>Hotel & Room</TableHead>
+                            <TableHead>Hotel &amp; Room</TableHead>
                             <TableHead>Dates</TableHead>
                             <TableHead className="text-right">Total Paid</TableHead>
                         </TableRow>
@@ -330,3 +331,5 @@ export function AdminDashboard() {
     </Tabs>
   );
 }
+
+    
