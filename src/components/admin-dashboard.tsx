@@ -19,13 +19,15 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Loader2, Building, BedDouble, User, BookOpen, Calendar } from "lucide-react";
+import { Check, X, Loader2, Building, BedDouble, User, BookOpen, Calendar, Archive } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { format } from "date-fns";
 import { db } from "@/lib/firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { DataTable } from "./admin/data-table";
+import { columns as allHotelsColumns } from "./admin/all-hotels-columns";
 
 // Helper to convert Firestore doc to our types, handling Timestamps
 const fromFirestore = <T extends { id: string }>(docSnap: any): T => {
@@ -53,6 +55,7 @@ const fromFirestore = <T extends { id: string }>(docSnap: any): T => {
 
 export function AdminDashboard() {
   const [pendingHotels, setPendingHotels] = useState<Hotel[]>([]);
+  const [allHotels, setAllHotels] = useState<Hotel[]>([]);
   const [pendingRooms, setPendingRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,20 +65,19 @@ export function AdminDashboard() {
   useEffect(() => {
     setLoading(true);
 
-    const hotelsQuery = query(collection(db, 'hotels'), where('status', '==', 'pending'));
+    const hotelsQuery = query(collection(db, 'hotels'));
     const roomsQuery = query(collection(db, 'rooms'), where('status', '==', 'pending'));
     const bookingsQuery = query(collection(db, 'bookings'));
 
     const unsubscribeHotels = onSnapshot(hotelsQuery, (snapshot) => {
         const hotelsData = snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
-        setPendingHotels(hotelsData);
+        setAllHotels(hotelsData);
+        setPendingHotels(hotelsData.filter(h => h.status === 'pending'));
         setLoading(false);
     });
 
     const unsubscribeRooms = onSnapshot(roomsQuery, async (snapshot) => {
         const roomsData = snapshot.docs.map(doc => fromFirestore<Room>(doc));
-        // We still need to enrich rooms with hotel names.
-        // This part is not real-time with hotel name changes, but will be for new rooms.
         const enrichedRooms = await Promise.all(roomsData.map(async (room) => {
              const hotelDoc = await db.collection('hotels').doc(room.hotelId).get();
              const hotel = fromFirestore<Hotel>(hotelDoc);
@@ -91,7 +93,6 @@ export function AdminDashboard() {
         setLoading(false);
     });
 
-    // Cleanup function
     return () => {
         unsubscribeHotels();
         unsubscribeRooms();
@@ -103,7 +104,6 @@ export function AdminDashboard() {
   const handleHotelAction = (hotelId: string, action: 'approve' | 'reject') => {
     startTransition(async () => {
       await updateHotelStatus(hotelId, action === 'approve' ? 'approved' : 'rejected');
-      // No need to reload data, onSnapshot will do it.
       toast({
         title: `Hotel ${action}d`,
         description: `The hotel has been successfully ${action}d.`,
@@ -114,7 +114,6 @@ export function AdminDashboard() {
   const handleRoomAction = (roomId: string, action: 'approve' | 'reject') => {
      startTransition(async () => {
       await updateRoomStatus(roomId, action === 'approve' ? 'approved' : 'rejected');
-       // No need to reload data, onSnapshot will do it.
       toast({
         title: `Room ${action}d`,
         description: `The room has been successfully ${action}d.`,
@@ -122,7 +121,7 @@ export function AdminDashboard() {
     });
   };
 
-  if (loading) {
+  if (loading && allHotels.length === 0) { // Only show initial big loader
     return (
         <div className="flex justify-center items-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -132,10 +131,14 @@ export function AdminDashboard() {
 
   return (
     <Tabs defaultValue="hotels">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-4">
         <TabsTrigger value="hotels">
           <Building className="mr-2 h-4 w-4" />
           Pending Hotels <Badge className="ml-2">{pendingHotels.length}</Badge>
+        </TabsTrigger>
+        <TabsTrigger value="all-hotels">
+            <Archive className="mr-2 h-4 w-4" />
+            All Hotels <Badge className="ml-2">{allHotels.length}</Badge>
         </TabsTrigger>
         <TabsTrigger value="rooms">
           <BedDouble className="mr-2 h-4 w-4" />
@@ -170,7 +173,7 @@ export function AdminDashboard() {
                             <Image src={hotel.coverImage} alt={hotel.name} width={100} height={60} className="rounded-md object-cover" />
                             <div>
                                 <p className="font-bold">{hotel.name}</p>
-                                <p className="text-xs text-muted-foreground">{hotel.description}</p>
+                                <p className="text-xs text-muted-foreground line-clamp-2">{hotel.description}</p>
                             </div>
                         </div>
                     </TableCell>
@@ -211,6 +214,17 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
       </TabsContent>
+       <TabsContent value="all-hotels">
+            <Card>
+                <CardHeader>
+                    <CardTitle>All Hotels</CardTitle>
+                    <CardDescription>A complete list of all hotels on the platform.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <DataTable columns={allHotelsColumns} data={allHotels} />
+                </CardContent>
+            </Card>
+       </TabsContent>
       <TabsContent value="rooms">
         <Card>
             <CardHeader>
@@ -235,7 +249,7 @@ export function AdminDashboard() {
                             <Image src={room.images[0]} alt={room.title} width={100} height={60} className="rounded-md object-cover" />
                             <div>
                                 <p className="font-bold">{room.title}</p>
-                                <p className="text-xs text-muted-foreground">{room.description}</p>
+                                <p className="text-xs text-muted-foreground line-clamp-2">{room.description}</p>
                             </div>
                         </div>
                     </TableCell>
@@ -316,4 +330,3 @@ export function AdminDashboard() {
     </Tabs>
   );
 }
-
