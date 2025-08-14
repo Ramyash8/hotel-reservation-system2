@@ -3,9 +3,6 @@
 
 import React, { useState, useEffect, useTransition } from "react";
 import {
-  getPendingHotels,
-  getPendingRooms,
-  getAllBookings,
   updateHotelStatus,
   updateRoomStatus,
 } from "@/lib/data";
@@ -27,6 +24,32 @@ import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { format } from "date-fns";
+import { db } from "@/lib/firebase";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+
+// Helper to convert Firestore doc to our types, handling Timestamps
+const fromFirestore = <T extends { id: string }>(docSnap: any): T => {
+    if (!docSnap.exists()) {
+        return undefined as any;
+    }
+
+    const data = docSnap.data();
+
+    const result: { [key: string]: any } = {
+        id: docSnap.id,
+    };
+
+    for (const key in data) {
+        if (data[key] instanceof (global?.window?.FirebaseFirestore?.Timestamp || require('firebase/firestore').Timestamp)) {
+            result[key] = data[key].toDate();
+        } else {
+            result[key] = data[key];
+        }
+    }
+    
+    return result as T;
+};
+
 
 export function AdminDashboard() {
   const [pendingHotels, setPendingHotels] = useState<Hotel[]>([]);
@@ -36,28 +59,51 @@ export function AdminDashboard() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  const loadData = async () => {
-    setLoading(true);
-    const [hotels, rooms, allBookings] = await Promise.all([
-      getPendingHotels(),
-      getPendingRooms(),
-      getAllBookings(),
-    ]);
-    setPendingHotels(hotels);
-    setPendingRooms(rooms);
-    setBookings(allBookings);
-    setLoading(false);
-  };
-
-
   useEffect(() => {
-    loadData();
-  }, []);
+    setLoading(true);
+
+    const hotelsQuery = query(collection(db, 'hotels'), where('status', '==', 'pending'));
+    const roomsQuery = query(collection(db, 'rooms'), where('status', '==', 'pending'));
+    const bookingsQuery = query(collection(db, 'bookings'));
+
+    const unsubscribeHotels = onSnapshot(hotelsQuery, (snapshot) => {
+        const hotelsData = snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
+        setPendingHotels(hotelsData);
+        setLoading(false);
+    });
+
+    const unsubscribeRooms = onSnapshot(roomsQuery, async (snapshot) => {
+        const roomsData = snapshot.docs.map(doc => fromFirestore<Room>(doc));
+        // We still need to enrich rooms with hotel names.
+        // This part is not real-time with hotel name changes, but will be for new rooms.
+        const enrichedRooms = await Promise.all(roomsData.map(async (room) => {
+             const hotelDoc = await db.collection('hotels').doc(room.hotelId).get();
+             const hotel = fromFirestore<Hotel>(hotelDoc);
+             return { ...room, hotelName: hotel ? hotel.name : 'Unknown Hotel' };
+        }));
+        setPendingRooms(enrichedRooms);
+        setLoading(false);
+    });
+
+    const unsubscribeBookings = onSnapshot(bookingsQuery, (snapshot) => {
+        const bookingsData = snapshot.docs.map(doc => fromFirestore<Booking>(doc));
+        setBookings(bookingsData);
+        setLoading(false);
+    });
+
+    // Cleanup function
+    return () => {
+        unsubscribeHotels();
+        unsubscribeRooms();
+        unsubscribeBookings();
+    };
+}, []);
+
 
   const handleHotelAction = (hotelId: string, action: 'approve' | 'reject') => {
     startTransition(async () => {
       await updateHotelStatus(hotelId, action === 'approve' ? 'approved' : 'rejected');
-      await loadData(); // Refresh data
+      // No need to reload data, onSnapshot will do it.
       toast({
         title: `Hotel ${action}d`,
         description: `The hotel has been successfully ${action}d.`,
@@ -68,7 +114,7 @@ export function AdminDashboard() {
   const handleRoomAction = (roomId: string, action: 'approve' | 'reject') => {
      startTransition(async () => {
       await updateRoomStatus(roomId, action === 'approve' ? 'approved' : 'rejected');
-      await loadData(); // Refresh data
+       // No need to reload data, onSnapshot will do it.
       toast({
         title: `Room ${action}d`,
         description: `The room has been successfully ${action}d.`,
@@ -270,3 +316,4 @@ export function AdminDashboard() {
     </Tabs>
   );
 }
+
