@@ -43,12 +43,6 @@ export const columns: ColumnDef<Hotel>[] = [
             <div className="font-medium">{hotel.name}</div>
         )
     },
-    filterFn: (row, id, value) => {
-      const name = row.original.name.toLowerCase();
-      const location = row.original.location.toLowerCase();
-      const filterValue = value.toLowerCase();
-      return name.includes(filterValue) || location.includes(filterValue);
-    },
   },
   {
     accessorKey: "location",
