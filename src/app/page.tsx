@@ -10,8 +10,9 @@ export default async function HomePage() {
   const allHotels = await getApprovedHotels();
 
   // Create different categories for demonstration, in a real app this would come from the database
-  const popularInPune = allHotels.filter(h => h.location.toLowerCase().includes('turkey')).slice(0, 6);
-  const inSouthGoa = allHotels.filter(h => h.location.toLowerCase().includes('greece')).slice(0, 6);
+  const inTurkey = allHotels.filter(h => h.location.toLowerCase().includes('turkey')).slice(0, 6);
+  const inGreece = allHotels.filter(h => h.location.toLowerCase().includes('greece')).slice(0, 6);
+  const inJapan = allHotels.filter(h => h.location.toLowerCase().includes('japan')).slice(0, 6);
 
 
   return (
@@ -29,7 +30,7 @@ export default async function HomePage() {
               <Button variant="ghost" size="sm">Show all &gt;</Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-              {popularInPune.map((hotel) => (
+              {inTurkey.map((hotel) => (
                 <Link href={`/hotel/${hotel.id}`} key={hotel.id}>
                   <HotelCard hotel={hotel} variant="compact" />
                 </Link>
@@ -39,11 +40,11 @@ export default async function HomePage() {
 
           <section className="mt-12">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold tracking-tight">Available in Greece this weekend</h2>
+              <h2 className="text-2xl font-bold tracking-tight">Stays in Greece</h2>
                <Button variant="ghost" size="sm">Show all &gt;</Button>
             </div>
              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-              {inSouthGoa.map((hotel) => (
+              {inGreece.map((hotel) => (
                 <Link href={`/hotel/${hotel.id}`} key={hotel.id}>
                   <HotelCard hotel={hotel} variant="compact" />
                 </Link>
@@ -53,10 +54,11 @@ export default async function HomePage() {
           
            <section className="mt-12">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold tracking-tight">All Stays</h2>
+              <h2 className="text-2xl font-bold tracking-tight">Unique stays in Japan</h2>
+              <Button variant="ghost" size="sm">Show all &gt;</Button>
             </div>
-             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {allHotels.map((hotel) => (
+             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+              {inJapan.map((hotel) => (
                 <Link href={`/hotel/${hotel.id}`} key={hotel.id}>
                   <HotelCard hotel={hotel} variant="compact" />
                 </Link>
