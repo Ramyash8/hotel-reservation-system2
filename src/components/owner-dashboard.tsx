@@ -10,7 +10,7 @@ import { AddRoomForm } from "./add-room-form";
 import { getHotelsByOwner, getRoomsByOwner, getBookingsByOwner } from "@/lib/data";
 import { useAuth } from "@/hooks/use-auth";
 import type { Hotel, Room, Booking } from "@/lib/types";
-import { Loader2, User, Calendar, PlusCircle } from "lucide-react";
+import { Loader2, User, Calendar, PlusCircle, Briefcase } from "lucide-react";
 import { HotelCard } from "./hotel-card";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
