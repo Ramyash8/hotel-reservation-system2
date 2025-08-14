@@ -40,13 +40,12 @@ export const columns: ColumnDef<Hotel>[] = [
     cell: ({ row }) => {
         const hotel = row.original
         return (
-            <div className="font-medium">{hotel.name}</div>
+            <div>
+                <div className="font-medium">{hotel.name}</div>
+                <div className="text-xs text-muted-foreground">{hotel.location}</div>
+            </div>
         )
     },
-  },
-  {
-    accessorKey: "location",
-    header: "Location",
   },
   {
     accessorKey: "ownerName",
