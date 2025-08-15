@@ -34,6 +34,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'gos3.ibcdn.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
