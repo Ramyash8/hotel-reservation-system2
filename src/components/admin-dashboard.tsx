@@ -30,13 +30,8 @@ import { DataTable } from "./admin/data-table";
 import { columns as allHotelsColumns } from "./admin/all-hotels-columns";
 
 // Helper to convert Firestore doc to our types, handling Timestamps
-const fromFirestore = <T extends { id: string }>(docSnap: any): T | undefined => {
-    if (!docSnap.exists()) {
-        return undefined;
-    }
-
+const fromFirestore = <T extends { id: string }>(docSnap: any): T => {
     const data = docSnap.data();
-    if (!data) return undefined;
 
     const result: { [key: string]: any } = {
         id: docSnap.id,
@@ -73,53 +68,26 @@ export function AdminDashboard() {
     const bookingsQuery = query(collection(db, 'bookings'));
 
     const unsubscribeHotels = onSnapshot(hotelsQuery, (snapshot) => {
-        const hotelsData = snapshot.docs.map(doc => {
-            const data = doc.data();
-            // Manually construct the object and convert Timestamps
-            const hotel: Hotel = {
-                id: doc.id,
-                name: data.name,
-                location: data.location,
-                description: data.description,
-                address: data.address,
-                phone: data.phone,
-                email: data.email,
-                website: data.website,
-                facilities: data.facilities,
-                checkInTime: data.checkInTime,
-                checkOutTime: data.checkOutTime,
-                cancellationPolicy: data.cancellationPolicy,
-                isPetFriendly: data.isPetFriendly,
-                documents: data.documents,
-                ownerId: data.ownerId,
-                status: data.status,
-                coverImage: data.coverImage,
-                category: data.category,
-                createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
-                ownerName: data.ownerName,
-                ownerEmail: data.ownerEmail,
-            };
-            return hotel;
-        });
+        const hotelsData = snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
         setAllHotels(hotelsData);
         setPendingHotels(hotelsData.filter(h => h.status === 'pending'));
         setLoading(false);
     });
 
     const unsubscribeRooms = onSnapshot(roomsQuery, async (snapshot) => {
-        const roomsData = snapshot.docs.map(doc => fromFirestore<Room>(doc)).filter(Boolean) as Room[];
+        const roomsData = snapshot.docs.map(doc => fromFirestore<Room>(doc));
         const enrichedRooms = await Promise.all(roomsData.map(async (room) => {
              const hotelDocRef = doc(db, 'hotels', room.hotelId);
              const hotelDoc = await getDoc(hotelDocRef);
-             const hotel = fromFirestore<Hotel>(hotelDoc);
-             return { ...room, hotelName: hotel ? hotel.name : 'Unknown Hotel' };
+             const hotelData = hotelDoc.exists() ? fromFirestore<Hotel>(hotelDoc) : undefined;
+             return { ...room, hotelName: hotelData ? hotelData.name : 'Unknown Hotel' };
         }));
         setPendingRooms(enrichedRooms);
         setLoading(false);
     });
 
     const unsubscribeBookings = onSnapshot(bookingsQuery, (snapshot) => {
-        const bookingsData = snapshot.docs.map(doc => fromFirestore<Booking>(doc)).filter(Boolean) as Booking[];
+        const bookingsData = snapshot.docs.map(doc => fromFirestore<Booking>(doc));
         setBookings(bookingsData);
         setLoading(false);
     });

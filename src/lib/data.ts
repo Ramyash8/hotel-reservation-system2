@@ -4,50 +4,8 @@ import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Time
 import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom, NewBooking } from './types';
 import { differenceInDays } from 'date-fns';
 
-// Hardcoded sample data for initial auth/login before Firestore is fully hydrated.
-const sampleUsers: User[] = [
-    { id: 'user-1', name: 'Alice Owner', email: 'alice@example.com', role: 'owner', password: 'password', createdAt: new Date() },
-    { id: 'user-2', name: 'Bob Guest', email: 'bob@example.com', role: 'user', password: 'password', createdAt: new Date() },
-    { id: 'admin-user', name: 'Admin', email: 'admin@lodgify.lite', role: 'admin', password: 'adminpassword', createdAt: new Date() },
-];
-
-const sampleRooms: Room[] = [
-    {
-        id: 'room-1',
-        hotelId: 'hotel-1',
-        title: 'Presidential Suite',
-        description: 'A suite fit for royalty with panoramic city views.',
-        price: 950,
-        capacity: 4,
-        images: ['https://cf.bstatic.com/xdata/images/hotel/max1024x768/528344237.jpg?k=3f2739e44485775317b96e5dc059e356d4608c887082987113c14856f68c16d0&o=', 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/528344242.jpg?k=7f88a9134a6a0537c3a8c51a704e622b3974a68a52932a39a888c03c53e6a4a4&o=', 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/528344246.jpg?k=b4e637ba235c8734ef98a3064eac7a7b8e19c3b8ca7026df1f2f115a3059296e&o='],
-        status: 'approved',
-        createdAt: new Date()
-    },
-    {
-        id: 'room-2',
-        hotelId: 'hotel-2',
-        title: 'Caldera View Room',
-        description: 'Wake up to the iconic view of the Santorini caldera.',
-        price: 450,
-        capacity: 2,
-        images: ['https://cf.bstatic.com/xdata/images/hotel/max1024x768/480530682.jpg?k=c23ad2a586718c20fc003eb1d3363560b9d13567291fc4d78d6f72a6a3aeb58c&o=','https://cf.bstatic.com/xdata/images/hotel/max1024x768/678234747.jpg?k=418b38f7b6ec6ee9eb5104e26350bf1df490141b18f063f6ca4462f89dc42e1f&o=','https://cf.bstatic.com/xdata/images/hotel/max1024x768/678234748.jpg?k=8fcacdc49bfec35238f96871e0668fbad3eff62f51779b051b070e8e8d778fcc&o='],
-        status: 'approved',
-        createdAt: new Date()
-    },
-     {
-        id: 'room-3',
-        hotelId: 'hotel-3',
-        title: 'Executive Room',
-        description: 'Modern comforts and a workspace for the discerning traveler.',
-        price: 250,
-        capacity: 2,
-        images: ['https://placehold.co/600x400.png', 'https://placehold.co/600x401.png', 'https://placehold.co/600x402.png'],
-        status: 'approved',
-        createdAt: new Date()
-    }
-];
-
-const sampleBookings: Booking[] = [];
+// This file should solely interact with Firestore as the single source of truth.
+// All sample data logic is now handled in firebase.ts for seeding purposes.
 
 // Collection references
 const usersCol = collection(db, "users");
@@ -84,14 +42,6 @@ const fromFirestore = <T extends { id: string }>(docSnap: any): T | undefined =>
 
 // Auth functions
 export const authenticateUser = async (email: string, password: string): Promise<User | null> => {
-    // Check in-memory users first (includes newly signed up users)
-    const memoryUser = sampleUsers.find(u => u.email === email && u.password === password);
-    if (memoryUser) {
-        console.log("Authenticated via in-memory user data.");
-        return memoryUser;
-    }
-
-    // Fallback to Firestore for persistent users (if any)
     try {
         const q = query(usersCol, where("email", "==", email));
         const querySnapshot = await getDocs(q);
@@ -121,7 +71,7 @@ export const createUser = async (userData: NewUser): Promise<User> => {
     const q = query(usersCol, where("email", "==", userData.email));
     const querySnapshot = await getDocs(q);
 
-    if (!querySnapshot.empty || sampleUsers.find(u => u.email === userData.email)) {
+    if (!querySnapshot.empty) {
         throw new Error("User with this email already exists");
     }
 
@@ -135,9 +85,6 @@ export const createUser = async (userData: NewUser): Promise<User> => {
 };
 
 export const getUserById = async (id: string): Promise<User | undefined> => {
-    const memoryUser = sampleUsers.find(u => u.id === id);
-    if(memoryUser) return memoryUser;
-
     try {
         const userDoc = await getDoc(doc(usersCol, id));
         return fromFirestore<User>(userDoc);
@@ -174,12 +121,14 @@ export const getHotelById = async (id: string): Promise<Hotel | undefined> => {
 };
 
 export const getRoomsByHotelId = async (hotelId: string): Promise<Room[]> => {
-    // This still uses sampleRooms for simplicity, could be moved to Firestore as well.
-    return sampleRooms.filter(r => r.hotelId === hotelId && r.status === 'approved');
+    const q = query(roomsCol, where('hotelId', '==', hotelId), where('status', '==', 'approved'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => fromFirestore<Room>(doc)).filter(Boolean) as Room[];
 };
 
 export const getRoomById = async (id: string): Promise<Room | undefined> => {
-    return sampleRooms.find(r => r.id === id);
+    const roomDoc = await getDoc(doc(roomsCol, id));
+    return fromFirestore<Room>(roomDoc);
 };
 
 export const updateHotelStatus = async (id: string, status: 'approved' | 'rejected'): Promise<void> => {
@@ -207,11 +156,9 @@ export const createHotel = async (hotelData: NewHotel): Promise<Hotel> => {
 }
 
 export const updateRoomStatus = async (id: string, status: 'approved' | 'rejected'): Promise<void> => {
-    const room = sampleRooms.find(r => r.id === id);
-    if(room) {
-        room.status = status;
-    }
-    console.log(`Updated room ${id} to ${status}. (In-memory)`);
+    const roomRef = doc(roomsCol, id);
+    await updateDoc(roomRef, { status });
+    console.log(`Updated room ${id} to ${status} in Firestore.`);
 }
 
 export const getHotelsByOwner = async (ownerId: string): Promise<Hotel[]> => {
@@ -221,29 +168,40 @@ export const getHotelsByOwner = async (ownerId: string): Promise<Hotel[]> => {
 }
 
 export const getRoomsByOwner = async (ownerId: string): Promise<Room[]> => {
-    const ownerHotelIds = (await getHotelsByOwner(ownerId)).map(h => h.id);
-    if (ownerHotelIds.length === 0) return [];
+    const ownerHotels = await getHotelsByOwner(ownerId);
+    if(ownerHotels.length === 0) return [];
     
-    // This still uses sampleRooms. A full implementation would query a 'rooms' collection.
-    return sampleRooms.filter(r => ownerHotelIds.includes(r.hotelId)).map(room => {
-        const hotel = sampleRooms.find(h => h.id === room.hotelId);
+    const hotelIds = ownerHotels.map(h => h.id);
+    const q = query(roomsCol, where('hotelId', 'in', hotelIds));
+    const snapshot = await getDocs(q);
+    
+    const rooms = snapshot.docs.map(doc => fromFirestore<Room>(doc)).filter(Boolean) as Room[];
+
+    return rooms.map(room => {
+        const hotel = ownerHotels.find(h => h.id === room.hotelId);
         return {
             ...room,
-            hotelName: hotel ? hotel.title : 'Unknown Hotel'
+            hotelName: hotel ? hotel.name : 'Unknown Hotel'
         }
     });
 }
 
 export const createRoom = async (roomData: NewRoom): Promise<Room> => {
-     const newRoom: Room = {
-        id: `room-${sampleRooms.length + 1}`,
+    const newRoomData = {
         ...roomData,
         images: ['https://placehold.co/600x400.png', 'https://placehold.co/600x401.png', 'https://placehold.co/600x402.png'],
+        status: 'pending' as const,
+        createdAt: serverTimestamp(),
+    };
+    const newDocRef = await addDoc(roomsCol, newRoomData);
+    
+    return {
+        id: newDocRef.id,
+        ...roomData,
+        images: newRoomData.images,
         status: 'pending',
         createdAt: new Date(),
     };
-    sampleRooms.push(newRoom);
-    return newRoom;
 }
 
 

@@ -1,7 +1,7 @@
 
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp, writeBatch, doc } from 'firebase/firestore';
-import type { NewHotel, NewUser } from './types';
+import { getFirestore, collection, query, getDocs, addDoc, serverTimestamp, writeBatch, doc } from 'firebase/firestore';
+import type { NewHotel, NewUser, NewRoom } from './types';
 
 
 const firebaseConfig = {
@@ -18,7 +18,7 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
 // --- Sample Data ---
-const sampleUsers: NewUser[] = [
+const sampleUsersData: NewUser[] = [
     { name: 'Alice Owner', email: 'alice@example.com', password: 'password', role: 'owner' },
     { name: 'Bob Guest', email: 'bob@example.com', password: 'password', role: 'user' },
     { name: 'Admin User', email: 'admin@lodgify.lite', password: 'adminpassword', role: 'admin' },
@@ -84,49 +84,100 @@ const sampleHotelsData: Omit<NewHotel, 'ownerId' | 'ownerName' | 'ownerEmail' | 
     }
 ];
 
+const sampleRoomsData: Omit<NewRoom, 'hotelId' | 'createdAt'>[] = [
+    {
+        title: 'Presidential Suite',
+        description: 'A suite fit for royalty with panoramic city views.',
+        price: 950,
+        capacity: 4,
+    },
+    {
+        title: 'Caldera View Room',
+        description: 'Wake up to the iconic view of the Santorini caldera.',
+        price: 450,
+        capacity: 2,
+    },
+     {
+        title: 'Executive Room',
+        description: 'Modern comforts and a workspace for the discerning traveler.',
+        price: 250,
+        capacity: 2,
+    }
+];
+
 
 // --- Seeding Functions ---
-
-const seedCollection = async <T extends object>(collectionName: string, data: T[]) => {
+const seedCollection = async <T extends { email?: string }>(collectionName: string, data: T[], uniqueField: keyof T & string = 'email') => {
     const collectionRef = collection(db, collectionName);
     console.log(`Checking if ${collectionName} collection needs seeding...`);
-    
-    const initialCheck = await getDocs(query(collectionRef));
-    if (!initialCheck.empty) {
-        console.log(`${collectionName} collection already contains data. Seeding skipped.`);
-        const docs = initialCheck.docs.map(doc => ({ ...doc.data() as T, id: doc.id }));
-        return docs;
-    }
-    
-    console.log(`${collectionName} collection is empty. Seeding data...`);
-    const batch = writeBatch(db);
-    const docRefs: (T & { id: string })[] = [];
 
-    for (const item of data) {
+    const existingDocsSnapshot = await getDocs(query(collectionRef));
+    const existingData = new Set(existingDocsSnapshot.docs.map(doc => doc.data()[uniqueField]));
+    
+    const newData = data.filter(item => !existingData.has(item[uniqueField]));
+
+    if (newData.length === 0) {
+        console.log(`${collectionName} collection is already up to date. Seeding skipped.`);
+        return;
+    }
+
+    console.log(`Seeding ${newData.length} new documents into ${collectionName}...`);
+    const batch = writeBatch(db);
+
+    for (const item of newData) {
         const newDocRef = doc(collectionRef);
         batch.set(newDocRef, { ...item, createdAt: serverTimestamp() });
-        docRefs.push({ ...item, id: newDocRef.id });
     }
 
     await batch.commit();
-    console.log(`${data.length} documents seeded into ${collectionName}.`);
-    return docRefs;
+    console.log(`${newData.length} documents seeded into ${collectionName}.`);
 };
 
 const seedDatabase = async () => {
     try {
-        const users = await seedCollection<NewUser>('users', sampleUsers);
+        await seedCollection<NewUser>('users', sampleUsersData, 'email');
 
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        const users = usersSnapshot.docs.map(doc => ({ ...doc.data() as NewUser, id: doc.id }));
         const owner = users.find(u => u.role === 'owner');
 
         if (owner) {
-            const hotelsToSeed = sampleHotelsData.map(hotel => ({
-                ...hotel,
-                ownerId: owner.id,
-                ownerName: owner.name,
-                ownerEmail: owner.email,
-            }));
-            await seedCollection('hotels', hotelsToSeed);
+            const hotelsSnapshot = await getDocs(collection(db, 'hotels'));
+            const existingHotelNames = new Set(hotelsSnapshot.docs.map(doc => doc.data().name));
+            
+            const newHotelsData = sampleHotelsData
+                .filter(hotel => !existingHotelNames.has(hotel.name))
+                .map(hotel => ({
+                    ...hotel,
+                    ownerId: owner.id,
+                    ownerName: owner.name,
+                    ownerEmail: owner.email,
+                }));
+            
+            if (newHotelsData.length > 0) {
+                await seedCollection<Omit<NewHotel, 'createdAt'>>('hotels', newHotelsData, 'name');
+            } else {
+                 console.log('Hotels collection is already up to date.');
+            }
+
+            // Seed rooms for the newly added hotels
+            const allHotelsSnapshot = await getDocs(collection(db, 'hotels'));
+            const allHotels = allHotelsSnapshot.docs.map(doc => ({ ...doc.data() as NewHotel, id: doc.id }));
+            
+            const grandPalace = allHotels.find(h => h.name === 'The Grand Palace');
+            const santoriniEscape = allHotels.find(h => h.name === 'Santorini Seaside Escape');
+            const modernHub = allHotels.find(h => h.name === 'Modern City Hub');
+
+            const roomsToSeed = [];
+            if(grandPalace) roomsToSeed.push({ ...sampleRoomsData[0], hotelId: grandPalace.id });
+            if(santoriniEscape) roomsToSeed.push({ ...sampleRoomsData[1], hotelId: santoriniEscape.id });
+            if(modernHub) roomsToSeed.push({ ...sampleRoomsData[2], hotelId: modernHub.id });
+            
+            if(roomsToSeed.length > 0) {
+                await seedCollection('rooms', roomsToSeed, 'title');
+            }
+
+
         } else {
             console.log("Could not find an owner to seed hotels for.");
         }
