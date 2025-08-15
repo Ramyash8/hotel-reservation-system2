@@ -10,16 +10,18 @@ This is a modern hotel reservation application built with Next.js and Firebase. 
 *   **UI Components**: [ShadCN UI](https://ui.shadcn.com/)
 *   **AI/Generative Features**: [Genkit](https://firebase.google.com/docs/genkit)
 *   **Backend & Database**: [Firebase](https://firebase.google.com/) (Firestore)
-*   **Authentication**: Firebase Authentication (simulated with local logic)
+*   **Authentication**: Simulated local logic using Firestore.
 
 ## Key Features
 
-*   **User Authentication**: Secure sign-up and login for guests, hotel owners, and admins.
-*   **Hotel Listings**: Browse and search for hotels with beautiful image galleries.
-*   **Dynamic Search**: Filter hotels by destination.
-*   **Owner Dashboard**: Allows property owners to add and manage their hotels and rooms.
-*   **Admin Dashboard**: A control panel for administrators to approve or reject new hotel and room submissions.
-*   **AI-Powered Suggestions**: When a room booking fails, an AI agent suggests alternative accommodations.
+*   **Role-Based Authentication**: Secure sign-up and login for three distinct user roles: Guests, Hotel Owners, and Administrators.
+*   **Dynamic Hotel Discovery**: Guests can browse and search for hotels, with filtering options for destinations.
+*   **Multi-Step Hotel Creation**: A guided, four-step form for hotel owners to submit new properties, including basic info, facilities, and optional verification documents.
+*   **Owner Dashboard**: A comprehensive dashboard for property owners to view their submitted hotels, track their status (Pending, Approved, Rejected), and see booking information.
+*   **Hotel Management**: Once a hotel is approved, owners can access a dedicated page to add and manage its rooms.
+*   **Admin Dashboard**: A powerful control panel for administrators to review and approve or reject new hotel and room submissions, with a complete overview of all platform data.
+*   **Seamless Booking**: Guests can book rooms, view their reservation history, and manage their stays.
+*   **AI-Powered Suggestions**: In case of booking failures, an AI agent can suggest alternative accommodations based on user preferences.
 
 ## Getting Started
 
@@ -51,6 +53,9 @@ To start the development server, run:
 npm run dev
 ```
 
-Open [http://localhost:9002](http://localhost:9002) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `src/app/page.tsx`. The page auto-updates as you edit the file.
+The application comes pre-seeded with sample users:
+*   **Admin:** `admin@lodgify.lite` / `adminpassword`
+*   **Owner:** `alice@example.com` / `password`
+*   **Guest:** `bob@example.com` / `password`
