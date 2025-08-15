@@ -29,7 +29,7 @@ export function Header() {
         <div className="hidden md:flex items-center space-x-2 rounded-full border shadow-sm px-4 py-2 text-sm font-medium">
             <Link href="/" className="px-3 py-1 rounded-full hover:bg-secondary">Stays</Link>
             <Link href="#" className="px-3 py-1 rounded-full hover:bg-secondary">Experiences</Link>
-            <Link href="#" className="px-3 py-1 rounded-full hover:bg-secondary">About</Link>
+            <Link href="/about" className="px-3 py-1 rounded-full hover:bg-secondary">About</Link>
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
