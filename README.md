@@ -1,3 +1,4 @@
+Admin - admin@lodgify.lite pass-adminpassword
 # Lodgify Lite
 
 This is a modern hotel reservation application built with Next.js and Firebase. It provides a platform for users to browse and book hotels, for hotel owners to manage their properties, and for administrators to oversee the platform.
