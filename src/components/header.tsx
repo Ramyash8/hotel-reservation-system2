@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
+import { ThemeToggle } from "./theme-toggle"
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -31,13 +32,14 @@ export function Header() {
             <Link href="#" className="px-3 py-1 rounded-full hover:bg-secondary">About</Link>
         </div>
 
-        <div className="flex flex-1 items-center justify-end space-x-4">
+        <div className="flex flex-1 items-center justify-end space-x-2">
             <Link href="/signup">
               <Button variant="ghost" className="hidden md:inline-flex">Become a host</Button>
             </Link>
             <Button variant="ghost" size="icon" className="hidden md:inline-flex">
                 <Globe className="h-5 w-5"/>
             </Button>
+            <ThemeToggle />
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
