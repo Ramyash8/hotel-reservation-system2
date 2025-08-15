@@ -25,7 +25,7 @@ import Image from "next/image";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { format } from "date-fns";
 import { db } from "@/lib/firebase";
-import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, getDoc, Timestamp } from "firebase/firestore";
 import { DataTable } from "./admin/data-table";
 import { columns as allHotelsColumns } from "./admin/all-hotels-columns";
 
@@ -43,10 +43,12 @@ const fromFirestore = <T extends { id: string }>(docSnap: any): T | undefined =>
     };
 
     for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key) && data[key] instanceof (global?.window?.FirebaseFirestore?.Timestamp || require('firebase/firestore').Timestamp)) {
-            result[key] = data[key].toDate();
-        } else {
-            result[key] = data[key];
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+             if (data[key] instanceof Timestamp) {
+                result[key] = data[key].toDate();
+            } else {
+                result[key] = data[key];
+            }
         }
     }
     
@@ -71,7 +73,34 @@ export function AdminDashboard() {
     const bookingsQuery = query(collection(db, 'bookings'));
 
     const unsubscribeHotels = onSnapshot(hotelsQuery, (snapshot) => {
-        const hotelsData = snapshot.docs.map(doc => fromFirestore<Hotel>(doc)).filter(Boolean) as Hotel[];
+        const hotelsData = snapshot.docs.map(doc => {
+            const data = doc.data();
+            // Manually construct the object and convert Timestamps
+            const hotel: Hotel = {
+                id: doc.id,
+                name: data.name,
+                location: data.location,
+                description: data.description,
+                address: data.address,
+                phone: data.phone,
+                email: data.email,
+                website: data.website,
+                facilities: data.facilities,
+                checkInTime: data.checkInTime,
+                checkOutTime: data.checkOutTime,
+                cancellationPolicy: data.cancellationPolicy,
+                isPetFriendly: data.isPetFriendly,
+                documents: data.documents,
+                ownerId: data.ownerId,
+                status: data.status,
+                coverImage: data.coverImage,
+                category: data.category,
+                createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
+                ownerName: data.ownerName,
+                ownerEmail: data.ownerEmail,
+            };
+            return hotel;
+        });
         setAllHotels(hotelsData);
         setPendingHotels(hotelsData.filter(h => h.status === 'pending'));
         setLoading(false);
@@ -132,7 +161,7 @@ export function AdminDashboard() {
   }
 
   return (
-    <Tabs defaultValue="hotels">
+    <Tabs defaultValue="all-hotels">
       <TabsList className="grid w-full grid-cols-4">
         <TabsTrigger value="hotels">
           <Building className="mr-2 h-4 w-4" />

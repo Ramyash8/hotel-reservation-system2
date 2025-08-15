@@ -38,7 +38,7 @@ export type Hotel = {
   status: 'pending' | 'approved' | 'rejected';
   coverImage: string;
   category?: 'Premium' | 'Eco-Friendly' | 'Ski Resort' | 'Historic' | 'Boutique';
-  createdAt: Date | Timestamp;
+  createdAt: Date;
   ownerName?: string; // For admin view
   ownerEmail?: string; // For admin view
   'data-ai-hint'?: string;
