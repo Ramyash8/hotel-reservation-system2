@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useTransition } from "react";
@@ -5,11 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AddHotelForm } from "./add-hotel-form";
-import { AddRoomForm } from "./add-room-form"; 
 import { getHotelsByOwner, getRoomsByOwner, getBookingsByOwner } from "@/lib/data";
 import { useAuth } from "@/hooks/use-auth";
 import type { Hotel, Room, Booking } from "@/lib/types";
-import { Loader2, User, Calendar, PlusCircle, Briefcase } from "lucide-react";
+import { Loader2, User, Calendar, PlusCircle, Briefcase, ExternalLink } from "lucide-react";
 import { HotelCard } from "./hotel-card";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -53,8 +53,6 @@ export function OwnerDashboard() {
         </div>
     );
   }
-
-  const approvedHotels = hotels.filter(h => h.status === 'approved');
 
   if (isAddingHotel) {
     return <AddHotelForm onFinished={() => {
@@ -121,11 +119,31 @@ export function OwnerDashboard() {
             <h2 className="text-2xl font-headline font-bold mb-4">Your Hotels</h2>
             {hotels.length > 0 ? (
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {hotels.map(hotel => (
-                        <Link href={hotel.status === 'approved' ? `/hotel/${hotel.id}` : '#'} key={hotel.id} className={hotel.status !== 'approved' ? 'pointer-events-none' : ''}>
-                            <HotelCard hotel={hotel} />
-                        </Link>
-                    ))}
+                    {hotels.map(hotel => {
+                        const isApproved = hotel.status === 'approved';
+                        const HotelContent = (
+                            <div className="relative">
+                                <HotelCard hotel={hotel} />
+                                {isApproved && (
+                                    <div className="absolute top-4 right-4 bg-primary text-primary-foreground p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <ExternalLink className="h-5 w-5" />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                        if (isApproved) {
+                            return (
+                                <Link href={`/owner/hotel/${hotel.id}`} key={hotel.id} className="group">
+                                    {HotelContent}
+                                </Link>
+                            )
+                        }
+                        return (
+                            <div key={hotel.id} className="cursor-not-allowed">
+                                {HotelContent}
+                            </div>
+                        )
+                    })}
                 </div>
             ) : (
                 <Card>
@@ -134,46 +152,6 @@ export function OwnerDashboard() {
                     </CardContent>
                 </Card>
             )}
-        </div>
-        <div className="space-y-6">
-            <AddRoomForm ownerHotels={approvedHotels} />
-            <div>
-                <h2 className="text-2xl font-headline font-bold mb-4">Your Rooms</h2>
-                <Card>
-                    <CardContent className="p-0">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Room Title</TableHead>
-                                    <TableHead>Hotel</TableHead>
-                                    <TableHead>Price</TableHead>
-                                    <TableHead>Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {rooms.length > 0 ? rooms.map(room => (
-                                    <TableRow key={room.id}>
-                                        <TableCell className="font-medium">{room.title}</TableCell>
-                                        <TableCell>{hotels.find(h => h.id === room.hotelId)?.name || 'N/A'}</TableCell>
-                                        <TableCell>${room.price}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={room.status === 'approved' ? 'default' : 'secondary'} className={room.status === 'approved' ? 'bg-green-600/20 text-green-600 border-green-600/20' : ''}>
-                                                {room.status}
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                )) : (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">
-                                            You haven't added any rooms yet.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            </div>
         </div>
       </TabsContent>
 

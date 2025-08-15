@@ -39,12 +39,21 @@ type AddRoomFormValues = z.infer<typeof addRoomFormSchema>;
 
 interface AddRoomFormProps {
     ownerHotels: Hotel[];
+    selectedHotelId?: string;
+    onRoomAdded?: () => void;
 }
 
-export function AddRoomForm({ ownerHotels }: AddRoomFormProps) {
+export function AddRoomForm({ ownerHotels, selectedHotelId, onRoomAdded }: AddRoomFormProps) {
   const { toast } = useToast();
   const form = useForm<AddRoomFormValues>({
     resolver: zodResolver(addRoomFormSchema),
+    defaultValues: {
+        hotelId: selectedHotelId || '',
+        title: '',
+        description: '',
+        price: 0,
+        capacity: 2
+    },
     mode: "onChange",
   });
 
@@ -55,7 +64,16 @@ export function AddRoomForm({ ownerHotels }: AddRoomFormProps) {
             title: "Room Submitted",
             description: "Your new room has been submitted for approval.",
         });
-        form.reset();
+        form.reset({
+            hotelId: selectedHotelId || '',
+            title: '',
+            description: '',
+            price: 0,
+            capacity: 2
+        });
+        if (onRoomAdded) {
+            onRoomAdded();
+        }
     } catch (error) {
         toast({
             variant: "destructive",
@@ -64,6 +82,8 @@ export function AddRoomForm({ ownerHotels }: AddRoomFormProps) {
         });
     }
   };
+
+  const hasApprovedHotels = ownerHotels.some(h => h.status === 'approved');
 
   return (
     <Card>
@@ -80,19 +100,19 @@ export function AddRoomForm({ ownerHotels }: AddRoomFormProps) {
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
                   <FormLabel>Hotel</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!selectedHotelId}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a hotel to add the room to" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {ownerHotels.map(hotel => (
+                      {ownerHotels.filter(h => h.status === 'approved').map(hotel => (
                         <SelectItem key={hotel.id} value={hotel.id}>
                           {hotel.name}
                         </SelectItem>
                       ))}
-                       {ownerHotels.length === 0 && <p className="p-4 text-sm text-muted-foreground">You have no approved hotels.</p>}
+                       {!hasApprovedHotels && <p className="p-4 text-sm text-muted-foreground">You have no approved hotels.</p>}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -157,9 +177,9 @@ export function AddRoomForm({ ownerHotels }: AddRoomFormProps) {
             />
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={form.formState.isSubmitting || ownerHotels.length === 0}>
+            <Button type="submit" disabled={form.formState.isSubmitting || !hasApprovedHotels}>
               {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Add Room
+              Add Room for Approval
             </Button>
           </CardFooter>
         </form>
