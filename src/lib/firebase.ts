@@ -1,7 +1,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp, writeBatch, doc } from 'firebase/firestore';
-import type { NewHotel, NewRoom, NewUser } from './types';
+import type { NewHotel, NewUser } from './types';
 
 
 const firebaseConfig = {
@@ -19,34 +19,78 @@ export const db = getFirestore(app);
 
 // --- Sample Data ---
 const sampleUsers: NewUser[] = [
-    { name: 'Alice Wanderer', email: 'alice@test.com', password: 'password', role: 'user' },
-    { name: 'Bob Hostelson', email: 'bob@test.com', password: 'password', role: 'owner' },
-    { name: 'Charlie Admin', email: 'admin@lodgify.lite', password: 'adminpassword', role: 'admin' },
+    { name: 'Alice Owner', email: 'alice@example.com', password: 'password', role: 'owner' },
+    { name: 'Bob Guest', email: 'bob@example.com', password: 'password', role: 'user' },
+    { name: 'Admin User', email: 'admin@lodgify.lite', password: 'adminpassword', role: 'admin' },
 ];
 
-const sampleHotels: Omit<NewHotel, 'ownerId' | 'ownerName' | 'ownerEmail'>[] = [
-    { name: 'Aegean Paradise Villa', location: 'Oia, Greece', description: 'Breathtaking sunset views over the caldera. A true Cycladic dream.', category: 'Premium', coverImage: 'https://placehold.co/1200x800.png?text=Aegean+Villa', 'data-ai-hint': 'luxury villa' },
-    { name: 'Cappadocia Cave Suites', location: 'Göreme, Turkey', description: 'Stay in a beautifully restored cave dwelling with all modern comforts.', category: 'Historic', coverImage: 'https://placehold.co/1200x800.png?text=Cave+Suite', 'data-ai-hint': 'cave hotel' },
-    { name: 'Kyoto Serenity Inn', location: 'Kyoto, Japan', description: 'A traditional Ryokan experience with tatami floors and a peaceful zen garden.', category: 'Boutique', coverImage: 'https://placehold.co/1200x800.png?text=Kyoto+Inn', 'data-ai-hint': 'japanese inn' },
-    { name: 'Alpine Ski Lodge', location: 'Chamonix, France', description: 'Ski-in/ski-out access to the best slopes in the Alps.', category: 'Ski Resort', coverImage: 'https://placehold.co/1200x800.png?text=Ski+Lodge', 'data-ai-hint': 'ski lodge' },
-    { name: 'Tuscan Vineyard Escape', location: 'Florence, Italy', description: 'A charming farmhouse surrounded by rolling hills and vineyards.', coverImage: 'https://placehold.co/1200x800.png?text=Tuscan+Escape', 'data-ai-hint': 'vineyard farmhouse' },
-    { name: 'Santorini Blue Dome', location: 'Oia, Greece', description: 'Iconic blue-domed stay with a private plunge pool.', coverImage: 'https://placehold.co/1200x800.png?text=Blue+Dome', 'data-ai-hint': 'santorini dome' },
-    { name: 'Istanbul Bazaar Hotel', location: 'Istanbul, Turkey', description: 'Steps away from the Grand Bazaar, immerse yourself in the vibrant city life.', category: 'Boutique', coverImage: 'https://placehold.co/1200x800.png?text=Bazaar+Hotel', 'data-ai-hint': 'city hotel' },
-    { name: 'Amalfi Coast Cliffside', location: 'Positano, Italy', description: 'A stunning hotel carved into the cliffs of the Amalfi Coast.', coverImage: 'https://placehold.co/1200x800.png?text=Amalfi+Coast', 'data-ai-hint': 'cliffside hotel' },
-    { name: 'Tokyo Zen Garden', location: 'Tokyo, Japan', description: 'A minimalist hotel with a serene zen garden in the heart of Tokyo.', coverImage: 'https://placehold.co/1200x800.png?text=Tokyo+Garden', 'data-ai-hint': 'zen garden' },
-    { name: 'Antalya Beach Resort', location: 'Antalya, Turkey', description: 'All-inclusive resort on the beautiful Mediterranean coast.', coverImage: 'https://placehold.co/1200x800.png?text=Beach+Resort', 'data-ai-hint': 'beach resort' },
-    { name: 'Mykonos Windmill Suite', location: 'Mykonos, Greece', description: 'Stay in a converted windmill with panoramic sea views.', coverImage: 'https://placehold.co/1200x800.png?text=Windmill+Suite', 'data-ai-hint': 'windmill hotel' },
-    { name: 'Roman Forum Overlook', location: 'Rome, Italy', description: 'A boutique hotel with views of the ancient Roman Forum.', coverImage: 'https://placehold.co/1200x800.png?text=Rome+Overlook', 'data-ai-hint': 'historic hotel' },
+const sampleHotelsData: Omit<NewHotel, 'ownerId' | 'ownerName' | 'ownerEmail' | 'createdAt'>[] = [
+    {
+        name: 'The Grand Palace',
+        location: 'Istanbul, Turkey',
+        description: 'Experience unparalleled luxury and breathtaking views of the Bosphorus in our five-star hotel, where elegance meets comfort.',
+        address: "1 Bosphorus St, Istanbul, Turkey",
+        phone: "555-123-4567",
+        email: "contact@grandpalace.com",
+        website: "https://grandpalace.com",
+        facilities: ["wifi", "pool", "spa"],
+        checkInTime: "15:00",
+        checkOutTime: "12:00",
+        cancellationPolicy: "Full refund for cancellations made 48 hours in advance.",
+        isPetFriendly: true,
+        documents: [],
+        status: 'approved',
+        coverImage: 'https://cf.bstatic.com/static/img/theme-index/bg_luxury/869918c9da63b2c5685fce05965700da5b0e6617.jpg',
+        category: 'Premium',
+        'data-ai-hint': 'luxury hotel interior'
+    },
+    {
+        name: 'Santorini Seaside Escape',
+        location: 'Oia, Greece',
+        description: 'Nestled on the cliffs of Oia, our hotel offers stunning sunsets and direct access to the azure waters of the Aegean Sea.',
+        address: "1 Cliffside Rd, Oia, Greece",
+        phone: "555-987-6543",
+        email: "reservations@santoriniescape.com",
+        website: "https://santoriniescape.com",
+        facilities: ["wifi", "pool"],
+        checkInTime: "14:00",
+        checkOutTime: "11:00",
+        cancellationPolicy: "Full refund for cancellations made 7 days in advance.",
+        isPetFriendly: false,
+        documents: [],
+        status: 'approved',
+        coverImage: 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/678234743.jpg?k=acee705a06f3347cd2f3d53609a536b772a99eda3603c4eb5ef136e5e6cd6204&o=',
+        category: 'Boutique',
+        'data-ai-hint': 'santorini hotel'
+    },
+    {
+        name: 'Modern City Hub',
+        location: 'Ankara, Turkey',
+        description: 'A stylish and contemporary hotel in the heart of the city, perfect for business travelers and urban explorers.',
+        address: "123 Capital Ave, Ankara, Turkey",
+        phone: "555-234-5678",
+        email: "info@modernhub.com",
+        website: "https://modernhub.com",
+        facilities: ["wifi", "gym", "restaurant"],
+        checkInTime: "15:00",
+        checkOutTime: "12:00",
+        cancellationPolicy: "Flexible cancellation up to 24 hours before check-in.",
+        isPetFriendly: false,
+        documents: [],
+        status: 'approved',
+        coverImage: 'https://lux-life.digital/wp-content/uploads/2019/09/turkish-hotel.jpg',
+        category: 'Boutique',
+        'data-ai-hint': 'modern hotel room'
+    }
 ];
 
 
 // --- Seeding Functions ---
 
-const seedCollection = async <T extends object>(collectionName: string, data: T[], checkField?: keyof T) => {
+const seedCollection = async <T extends object>(collectionName: string, data: T[]) => {
     const collectionRef = collection(db, collectionName);
     console.log(`Checking if ${collectionName} collection needs seeding...`);
     
-    // Check if the entire collection is empty
     const initialCheck = await getDocs(query(collectionRef));
     if (!initialCheck.empty) {
         console.log(`${collectionName} collection already contains data. Seeding skipped.`);
@@ -61,7 +105,6 @@ const seedCollection = async <T extends object>(collectionName: string, data: T[
     for (const item of data) {
         const newDocRef = doc(collectionRef);
         batch.set(newDocRef, { ...item, createdAt: serverTimestamp() });
-        // We add the id to the item so we can use it later when seeding dependent collections
         docRefs.push({ ...item, id: newDocRef.id });
     }
 
@@ -72,19 +115,18 @@ const seedCollection = async <T extends object>(collectionName: string, data: T[
 
 const seedDatabase = async () => {
     try {
-        const users = await seedCollection<NewUser>('users', sampleUsers, 'email');
+        const users = await seedCollection<NewUser>('users', sampleUsers);
 
         const owner = users.find(u => u.role === 'owner');
 
         if (owner) {
-            const hotelsToSeed = sampleHotels.map(hotel => ({
+            const hotelsToSeed = sampleHotelsData.map(hotel => ({
                 ...hotel,
                 ownerId: owner.id,
                 ownerName: owner.name,
                 ownerEmail: owner.email,
-                status: 'approved' as const, // Ensure hotels are approved
             }));
-            await seedCollection('hotels', hotelsToSeed, 'name');
+            await seedCollection('hotels', hotelsToSeed);
         } else {
             console.log("Could not find an owner to seed hotels for.");
         }

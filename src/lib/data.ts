@@ -1,19 +1,53 @@
 
-
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp, writeBatch, documentId } from 'firebase/firestore';
 import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom, NewBooking } from './types';
 import { differenceInDays } from 'date-fns';
 
-// Hardcoded sample data for initial users
+// Hardcoded sample data for initial auth/login before Firestore is fully hydrated.
 const sampleUsers: User[] = [
     { id: 'user-1', name: 'Alice Owner', email: 'alice@example.com', role: 'owner', password: 'password', createdAt: new Date() },
     { id: 'user-2', name: 'Bob Guest', email: 'bob@example.com', role: 'user', password: 'password', createdAt: new Date() },
     { id: 'admin-user', name: 'Admin', email: 'admin@lodgify.lite', role: 'admin', password: 'adminpassword', createdAt: new Date() },
 ];
 
-const sampleBookings: Booking[] = [];
+const sampleRooms: Room[] = [
+    {
+        id: 'room-1',
+        hotelId: 'hotel-1',
+        title: 'Presidential Suite',
+        description: 'A suite fit for royalty with panoramic city views.',
+        price: 950,
+        capacity: 4,
+        images: ['https://cf.bstatic.com/xdata/images/hotel/max1024x768/528344237.jpg?k=3f2739e44485775317b96e5dc059e356d4608c887082987113c14856f68c16d0&o=', 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/528344242.jpg?k=7f88a9134a6a0537c3a8c51a704e622b3974a68a52932a39a888c03c53e6a4a4&o=', 'https://cf.bstatic.com/xdata/images/hotel/max1024x768/528344246.jpg?k=b4e637ba235c8734ef98a3064eac7a7b8e19c3b8ca7026df1f2f115a3059296e&o='],
+        status: 'approved',
+        createdAt: new Date()
+    },
+    {
+        id: 'room-2',
+        hotelId: 'hotel-2',
+        title: 'Caldera View Room',
+        description: 'Wake up to the iconic view of the Santorini caldera.',
+        price: 450,
+        capacity: 2,
+        images: ['https://cf.bstatic.com/xdata/images/hotel/max1024x768/480530682.jpg?k=c23ad2a586718c20fc003eb1d3363560b9d13567291fc4d78d6f72a6a3aeb58c&o=','https://cf.bstatic.com/xdata/images/hotel/max1024x768/678234747.jpg?k=418b38f7b6ec6ee9eb5104e26350bf1df490141b18f063f6ca4462f89dc42e1f&o=','https://cf.bstatic.com/xdata/images/hotel/max1024x768/678234748.jpg?k=8fcacdc49bfec35238f96871e0668fbad3eff62f51779b051b070e8e8d778fcc&o='],
+        status: 'approved',
+        createdAt: new Date()
+    },
+     {
+        id: 'room-3',
+        hotelId: 'hotel-3',
+        title: 'Executive Room',
+        description: 'Modern comforts and a workspace for the discerning traveler.',
+        price: 250,
+        capacity: 2,
+        images: ['https://placehold.co/600x400.png', 'https://placehold.co/600x401.png', 'https://placehold.co/600x402.png'],
+        status: 'approved',
+        createdAt: new Date()
+    }
+];
 
+const sampleBookings: Booking[] = [];
 
 // Collection references
 const usersCol = collection(db, "users");
@@ -36,11 +70,10 @@ const fromFirestore = <T extends { id: string }>(docSnap: any): T | undefined =>
 
     for (const key in data) {
         if (Object.prototype.hasOwnProperty.call(data, key)) {
-            const value = data[key];
-            if (value instanceof Timestamp) {
-                result[key] = value.toDate();
+             if (data[key] instanceof Timestamp) {
+                result[key] = data[key].toDate();
             } else {
-                result[key] = value;
+                result[key] = data[key];
             }
         }
     }
@@ -92,26 +125,19 @@ export const createUser = async (userData: NewUser): Promise<User> => {
         throw new Error("User with this email already exists");
     }
 
-    // For demo purposes, we'll add to in-memory array and Firestore
-    const docRef = await addDoc(usersCol, {
-        ...userData,
-        createdAt: serverTimestamp(),
-    });
+    const newUserDoc = await addDoc(usersCol, { ...userData, createdAt: serverTimestamp() });
 
-    const newUser: User = {
-      id: docRef.id,
+    return {
+      id: newUserDoc.id,
       ...userData,
       createdAt: new Date(),
     };
-    sampleUsers.push(newUser);
-    return newUser;
 };
 
 export const getUserById = async (id: string): Promise<User | undefined> => {
-    const user = sampleUsers.find(u => u.id === id);
-    if (user) {
-        return user;
-    }
+    const memoryUser = sampleUsers.find(u => u.id === id);
+    if(memoryUser) return memoryUser;
+
     try {
         const userDoc = await getDoc(doc(usersCol, id));
         return fromFirestore<User>(userDoc);
@@ -122,50 +148,39 @@ export const getUserById = async (id: string): Promise<User | undefined> => {
 };
 
 
-// Hotel Functions
+// API-like access patterns
 export const getApprovedHotels = async (): Promise<Hotel[]> => {
-    const q = query(hotelsCol, where("status", "==", "approved"));
+    const q = query(hotelsCol, where('status', '==', 'approved'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => fromFirestore<Hotel>(doc)).filter(Boolean) as Hotel[];
 };
 
 export const searchHotels = async (criteria: HotelSearchCriteria): Promise<Hotel[]> => {
-    // This is a simplified search. A real app would use a dedicated search service like Algolia.
-    const allApprovedHotels = await getApprovedHotels();
+    const allApproved = await getApprovedHotels();
     if (!criteria.destination) {
-        return allApprovedHotels;
+        return allApproved;
     }
 
     const searchLower = criteria.destination.toLowerCase();
-    return allApprovedHotels.filter(hotel =>
-        hotel.name.toLowerCase().includes(searchLower) ||
-        hotel.location.toLowerCase().includes(searchLower)
+    return allApproved.filter(hotel =>
+        (hotel.name.toLowerCase().includes(searchLower) ||
+        hotel.location.toLowerCase().includes(searchLower))
     );
 };
-
 
 export const getHotelById = async (id: string): Promise<Hotel | undefined> => {
     const hotelDoc = await getDoc(doc(hotelsCol, id));
     return fromFirestore<Hotel>(hotelDoc);
 };
 
-export const createHotel = async (hotelData: NewHotel): Promise<Hotel> => {
-    const newHotelData = {
-        ...hotelData,
-        status: 'pending' as const,
-        coverImage: 'https://placehold.co/1200x800.png',
-        createdAt: serverTimestamp(),
-    }
-    const docRef = await addDoc(hotelsCol, newHotelData);
-    
-    return {
-        id: docRef.id,
-        ...hotelData,
-        status: 'pending',
-        coverImage: 'https://placehold.co/1200x800.png',
-        createdAt: new Date(), // Return a Date object for immediate use
-    };
-}
+export const getRoomsByHotelId = async (hotelId: string): Promise<Room[]> => {
+    // This still uses sampleRooms for simplicity, could be moved to Firestore as well.
+    return sampleRooms.filter(r => r.hotelId === hotelId && r.status === 'approved');
+};
+
+export const getRoomById = async (id: string): Promise<Room | undefined> => {
+    return sampleRooms.find(r => r.id === id);
+};
 
 export const updateHotelStatus = async (id: string, status: 'approved' | 'rejected'): Promise<void> => {
     const hotelRef = doc(hotelsCol, id);
@@ -173,68 +188,62 @@ export const updateHotelStatus = async (id: string, status: 'approved' | 'reject
     console.log(`Updated hotel ${id} to ${status} in Firestore.`);
 }
 
+export const createHotel = async (hotelData: NewHotel): Promise<Hotel> => {
+    const hotelWithTimestamp = {
+        ...hotelData,
+        status: 'pending' as const,
+        coverImage: 'https://placehold.co/1200x800.png',
+        createdAt: serverTimestamp(),
+    };
+    const newDocRef = await addDoc(hotelsCol, hotelWithTimestamp);
+    
+    return {
+        id: newDocRef.id,
+        ...hotelData,
+        status: 'pending',
+        coverImage: 'https://placehold.co/1200x800.png',
+        createdAt: new Date(),
+    }
+}
+
+export const updateRoomStatus = async (id: string, status: 'approved' | 'rejected'): Promise<void> => {
+    const room = sampleRooms.find(r => r.id === id);
+    if(room) {
+        room.status = status;
+    }
+    console.log(`Updated room ${id} to ${status}. (In-memory)`);
+}
+
 export const getHotelsByOwner = async (ownerId: string): Promise<Hotel[]> => {
-    const q = query(hotelsCol, where("ownerId", "==", ownerId));
+    const q = query(hotelsCol, where('ownerId', '==', ownerId));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => fromFirestore<Hotel>(doc)).filter(Boolean) as Hotel[];
 }
 
-// Room Functions
-export const getRoomsByHotelId = async (hotelId: string): Promise<Room[]> => {
-    const q = query(roomsCol, where("hotelId", "==", hotelId), where("status", "==", "approved"));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => fromFirestore<Room>(doc)).filter(Boolean) as Room[];
-};
-
-export const getRoomById = async (id: string): Promise<Room | undefined> => {
-    const roomDoc = await getDoc(doc(roomsCol, id));
-    return fromFirestore<Room>(roomDoc);
-};
+export const getRoomsByOwner = async (ownerId: string): Promise<Room[]> => {
+    const ownerHotelIds = (await getHotelsByOwner(ownerId)).map(h => h.id);
+    if (ownerHotelIds.length === 0) return [];
+    
+    // This still uses sampleRooms. A full implementation would query a 'rooms' collection.
+    return sampleRooms.filter(r => ownerHotelIds.includes(r.hotelId)).map(room => {
+        const hotel = sampleRooms.find(h => h.id === room.hotelId);
+        return {
+            ...room,
+            hotelName: hotel ? hotel.title : 'Unknown Hotel'
+        }
+    });
+}
 
 export const createRoom = async (roomData: NewRoom): Promise<Room> => {
-     const newRoomData = {
-        ...roomData,
-        images: ['https://placehold.co/600x400.png', 'https://placehold.co/600x401.png', 'https://placehold.co/600x402.png'],
-        status: 'pending' as const,
-        createdAt: serverTimestamp(),
-    };
-    const docRef = await addDoc(roomsCol, newRoomData);
-    return {
-        id: docRef.id,
+     const newRoom: Room = {
+        id: `room-${sampleRooms.length + 1}`,
         ...roomData,
         images: ['https://placehold.co/600x400.png', 'https://placehold.co/600x401.png', 'https://placehold.co/600x402.png'],
         status: 'pending',
         createdAt: new Date(),
     };
-}
-
-export const updateRoomStatus = async (id: string, status: 'approved' | 'rejected'): Promise<void> => {
-    const roomRef = doc(roomsCol, id);
-    await updateDoc(roomRef, { status });
-    console.log(`Updated room ${id} to ${status} in Firestore.`);
-}
-
-export const getRoomsByOwner = async (ownerId: string): Promise<Room[]> => {
-    const ownerHotels = await getHotelsByOwner(ownerId);
-    const ownerHotelIds = ownerHotels.map(h => h.id);
-
-    if (ownerHotelIds.length === 0) {
-        return [];
-    }
-    
-    // Firestore 'in' query is limited to 30 elements in the array.
-    // For a larger number of hotels, you might need multiple queries.
-    const q = query(roomsCol, where("hotelId", "in", ownerHotelIds));
-    const snapshot = await getDocs(q);
-    const rooms = snapshot.docs.map(doc => fromFirestore<Room>(doc)).filter(Boolean) as Room[];
-    
-    return rooms.map(room => {
-        const hotel = ownerHotels.find(h => h.id === room.hotelId);
-        return {
-            ...room,
-            hotelName: hotel ? hotel.name : 'Unknown Hotel'
-        }
-    });
+    sampleRooms.push(newRoom);
+    return newRoom;
 }
 
 
@@ -246,13 +255,11 @@ export const createBooking = async (bookingData: NewBooking): Promise<Booking> =
     if (!from || !to || !bookingData.userId || !bookingData.roomId) {
         throw new Error("Missing required booking information.");
     }
-    
+
     const room = await getRoomById(bookingData.roomId);
     if (!room) throw new Error("Room not found.");
-    
     const hotel = await getHotelById(bookingData.hotelId);
     if (!hotel) throw new Error("Hotel not found.");
-    
     const user = await getUserById(bookingData.userId);
     if (!user) throw new Error("User not found.");
 
@@ -261,10 +268,11 @@ export const createBooking = async (bookingData: NewBooking): Promise<Booking> =
         throw new Error("Booking must be for at least one night.");
     }
     
-    const newBookingData: Omit<Booking, 'id' | 'createdAt'> = {
+    const newBookingData = {
         ...bookingData,
         totalPrice: room.price * numberOfNights,
-        status: 'confirmed',
+        status: 'confirmed' as const,
+        createdAt: serverTimestamp(),
         hotelName: hotel.name,
         hotelLocation: hotel.location,
         roomTitle: room.title,
@@ -272,41 +280,33 @@ export const createBooking = async (bookingData: NewBooking): Promise<Booking> =
         userName: user.name,
         hotelOwnerId: hotel.ownerId,
     };
-
-    const docRef = await addDoc(bookingsCol, {
-        ...newBookingData,
-        createdAt: serverTimestamp(),
-    });
-
-    const newBooking: Booking = {
-        id: docRef.id,
-        ...newBookingData,
-        createdAt: new Date(),
-    };
     
-    sampleBookings.push(newBooking); // Also keep in-memory for demo if needed
-    console.log("New booking created:", newBooking);
-    return newBooking;
+    const docRef = await addDoc(bookingsCol, newBookingData);
+    console.log("New booking created in Firestore:", docRef.id);
+    
+    return {
+        id: docRef.id,
+        ...bookingData,
+        totalPrice: room.price * numberOfNights,
+        status: 'confirmed',
+        createdAt: new Date(),
+        hotelName: hotel.name,
+        hotelLocation: hotel.location,
+        roomTitle: room.title,
+        coverImage: hotel.coverImage,
+        userName: user.name,
+        hotelOwnerId: hotel.ownerId,
+    };
 };
 
 export const getBookingsByUser = async (userId: string): Promise<Booking[]> => {
-    const q = query(bookingsCol, where("userId", "==", userId));
+    const q = query(bookingsCol, where('userId', '==', userId));
     const snapshot = await getDocs(q);
-    const bookings = snapshot.docs.map(doc => fromFirestore<Booking>(doc)).filter(Boolean) as Booking[];
-    return bookings.sort((a,b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
+    return snapshot.docs.map(doc => fromFirestore<Booking>(doc)).filter(Boolean) as Booking[];
 }
 
 export const getBookingsByOwner = async (ownerId: string): Promise<Booking[]> => {
-    const q = query(bookingsCol, where("hotelOwnerId", "==", ownerId));
+    const q = query(bookingsCol, where('hotelOwnerId', '==', ownerId));
     const snapshot = await getDocs(q);
-    const bookings = snapshot.docs.map(doc => fromFirestore<Booking>(doc)).filter(Boolean) as Booking[];
-    return bookings.sort((a,b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
+    return snapshot.docs.map(doc => fromFirestore<Booking>(doc)).filter(Boolean) as Booking[];
 }
-
-export const getAllBookings = async (): Promise<Booking[]> => {
-    const snapshot = await getDocs(bookingsCol);
-    const bookings = snapshot.docs.map(doc => fromFirestore<Booking>(doc)).filter(Boolean) as Booking[];
-    return bookings.sort((a, b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
-}
-
-    
