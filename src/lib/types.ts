@@ -68,7 +68,7 @@ export type Room = {
   'data-ai-hint'?: string;
 };
 
-export type NewRoom = Omit<Room, 'id' | 'status' | 'images' | 'createdAt' | 'hotelName' | 'data-ai-hint'>;
+export type NewRoom = Omit<Room, 'id' | 'status' | 'createdAt' | 'hotelName' | 'data-ai-hint'>;
 
 export type Booking = {
   id: string;

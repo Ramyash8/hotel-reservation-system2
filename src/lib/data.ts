@@ -189,7 +189,6 @@ export const getRoomsByOwner = async (ownerId: string): Promise<Room[]> => {
 export const createRoom = async (roomData: NewRoom): Promise<Room> => {
     const newRoomData = {
         ...roomData,
-        images: ['https://placehold.co/600x400.png', 'https://placehold.co/600x401.png', 'https://placehold.co/600x402.png'],
         status: 'pending' as const,
         createdAt: serverTimestamp(),
     };
@@ -198,7 +197,6 @@ export const createRoom = async (roomData: NewRoom): Promise<Room> => {
     return {
         id: newDocRef.id,
         ...roomData,
-        images: newRoomData.images,
         status: 'pending',
         createdAt: new Date(),
     };
