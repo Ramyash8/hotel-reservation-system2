@@ -46,6 +46,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'r1imghtlak.mmtcdn.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
