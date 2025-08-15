@@ -44,7 +44,9 @@ export type Hotel = {
   'data-ai-hint'?: string;
 };
 
-export type NewHotel = Omit<Hotel, 'id' | 'status' | 'coverImage' | 'createdAt'>;
+export type NewHotel = Omit<Hotel, 'id' | 'status' | 'createdAt'> & {
+    coverImage?: string;
+};
 
 export type HotelSearchCriteria = {
   destination?: string;

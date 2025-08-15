@@ -141,7 +141,7 @@ export const createHotel = async (hotelData: NewHotel): Promise<Hotel> => {
     const hotelWithTimestamp = {
         ...hotelData,
         status: 'pending' as const,
-        coverImage: 'https://placehold.co/1200x800.png',
+        coverImage: hotelData.coverImage || 'https://placehold.co/1200x800.png',
         createdAt: serverTimestamp(),
     };
     const newDocRef = await addDoc(hotelsCol, hotelWithTimestamp);
@@ -150,7 +150,7 @@ export const createHotel = async (hotelData: NewHotel): Promise<Hotel> => {
         id: newDocRef.id,
         ...hotelData,
         status: 'pending',
-        coverImage: 'https://placehold.co/1200x800.png',
+        coverImage: hotelWithTimestamp.coverImage,
         createdAt: new Date(),
     }
 }
