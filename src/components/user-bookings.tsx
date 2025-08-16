@@ -114,7 +114,8 @@ export function UserBookings() {
                     const fromDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : new Date(booking.fromDate);
                     const toDate = booking.toDate instanceof Timestamp ? booking.toDate.toDate() : new Date(booking.toDate);
                     const isCancelled = booking.status === 'cancelled';
-                    const canCancel = !isPast(startOfDay(fromDate)) && !isCancelled;
+                    const canCancel = !isPast(startOfDay(new Date(booking.fromDate as Date))) && !isCancelled;
+
 
                     return (
                         <Card key={booking.id} className="overflow-hidden shadow-lg transition-all hover:shadow-xl">
@@ -131,7 +132,7 @@ export function UserBookings() {
                                 </div>
                                 <div className="md:col-span-8 flex flex-col">
                                     <div className="p-6">
-                                        <Badge variant={isCancelled ? 'destructive' : 'default'} className="mb-2 capitalize">{booking.status}</Badge>
+                                        <Badge variant={isCancelled ? 'destructive' : booking.status === 'confirmed' ? 'default' : 'secondary'} className="mb-2 capitalize">{booking.status}</Badge>
                                         <h2 className="text-2xl font-headline font-bold">{booking.hotelName}</h2>
                                         <p className="text-lg font-semibold text-primary">{booking.roomTitle}</p>
                                         <div className="text-muted-foreground text-sm flex items-center gap-2 mt-1">
