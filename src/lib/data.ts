@@ -2,7 +2,7 @@
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp, writeBatch, documentId } from 'firebase/firestore';
 import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom, NewBooking } from './types';
-import { differenceInDays } from 'date-fns';
+import { differenceInDays, isBefore } from 'date-fns';
 
 // This file should solely interact with Firestore as the single source of truth.
 // All sample data logic is now handled in firebase.ts for seeding purposes.
@@ -266,3 +266,28 @@ export const getBookingsByOwner = async (ownerId: string): Promise<Booking[]> =>
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => fromFirestore<Booking>(doc)).filter(Boolean) as Booking[];
 }
+
+export const cancelBooking = async (bookingId: string): Promise<void> => {
+    const bookingRef = doc(bookingsCol, bookingId);
+    const bookingDoc = await getDoc(bookingRef);
+    const booking = fromFirestore<Booking>(bookingDoc);
+
+    if (!booking) {
+        throw new Error("Booking not found.");
+    }
+
+    if (booking.status === 'cancelled') {
+        throw new Error("This booking has already been cancelled.");
+    }
+
+    const checkInDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : booking.fromDate;
+    if (isBefore(new Date(), checkInDate)) {
+         await updateDoc(bookingRef, {
+            status: 'cancelled',
+            cancelledAt: serverTimestamp()
+        });
+        console.log(`Booking ${bookingId} cancelled.`);
+    } else {
+        throw new Error("Cannot cancel a booking after the check-in date.");
+    }
+};
