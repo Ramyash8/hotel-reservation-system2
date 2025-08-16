@@ -289,7 +289,7 @@ export const cancelBooking = async (bookingId: string): Promise<void> => {
     
     // Check if the check-in date is in the past.
     // startOfDay is used to ensure that a booking can be cancelled on the same day as check-in.
-    if (isPast(startOfDay(booking.fromDate))) {
+    if (isPast(startOfDay(booking.fromDate as Date))) {
         throw new Error("Cannot cancel a booking after the check-in date has passed.");
     }
     

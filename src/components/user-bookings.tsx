@@ -104,8 +104,9 @@ export function UserBookings() {
         <>
             <div className="space-y-8">
                 {bookings.map((booking) => {
+                    const fromDateAsDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : booking.fromDate;
                     const isCancelled = booking.status === 'cancelled';
-                    const canCancel = !isPast(startOfDay(booking.fromDate)) && !isCancelled;
+                    const canCancel = !isPast(startOfDay(fromDateAsDate)) && !isCancelled;
 
                     return (
                         <Card key={booking.id} className="overflow-hidden shadow-lg transition-all hover:shadow-xl">
@@ -134,14 +135,14 @@ export function UserBookings() {
                                                 <Calendar className="h-5 w-5 text-primary" />
                                                 <div>
                                                     <p className="font-semibold">Check-in</p>
-                                                    <p>{format(booking.fromDate, 'eee, LLL dd, yyyy')}</p>
+                                                    <p>{format(booking.fromDate as Date, 'eee, LLL dd, yyyy')}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="h-5 w-5 text-primary" />
                                                 <div>
                                                     <p className="font-semibold">Check-out</p>
-                                                    <p>{format(booking.toDate, 'eee, LLL dd, yyyy')}</p>
+                                                    <p>{format(booking.toDate as Date, 'eee, LLL dd, yyyy')}</p>
                                                 </div>
                                             </div>
                                         </div>
