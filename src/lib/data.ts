@@ -200,6 +200,7 @@ export const createRoom = async (roomData: NewRoom): Promise<Room> => {
         ...roomData,
         status: 'pending',
         createdAt: new Date(),
+        images: newRoomData.images,
     };
 }
 

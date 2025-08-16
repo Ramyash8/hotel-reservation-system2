@@ -39,10 +39,9 @@ export function UserBookings() {
             setLoading(true);
             getBookingsByUser(user.id)
                 .then(b => {
-                    // Ensure fromDate is a Date object for sorting
                     const sortedBookings = b.sort((a,b) => {
-                        const dateA = a.fromDate instanceof Timestamp ? a.fromDate.toDate() : a.fromDate;
-                        const dateB = b.fromDate instanceof Timestamp ? b.fromDate.toDate() : b.fromDate;
+                        const dateA = a.fromDate instanceof Timestamp ? a.fromDate.toDate() : new Date(a.fromDate);
+                        const dateB = b.fromDate instanceof Timestamp ? b.fromDate.toDate() : new Date(b.fromDate);
                         return dateB.getTime() - dateA.getTime();
                     });
                     setBookings(sortedBookings);
@@ -113,8 +112,8 @@ export function UserBookings() {
             <div className="space-y-8">
                 {bookings.map((booking) => {
                     // Ensure dates are correctly converted from Timestamp if necessary
-                    const fromDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : booking.fromDate;
-                    const toDate = booking.toDate instanceof Timestamp ? booking.toDate.toDate() : booking.toDate;
+                    const fromDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : new Date(booking.fromDate);
+                    const toDate = booking.toDate instanceof Timestamp ? booking.toDate.toDate() : new Date(booking.toDate);
 
                     const isCancelled = booking.status === 'cancelled';
                     const canCancel = !isPast(startOfDay(fromDate)) && !isCancelled;
