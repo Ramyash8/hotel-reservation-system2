@@ -105,7 +105,7 @@ export function UserBookings() {
             <div className="space-y-8">
                 {bookings.map((booking) => {
                     const isCancelled = booking.status === 'cancelled';
-                    const fromDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : booking.fromDate;
+                    const fromDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : new Date(booking.fromDate);
                     const canCancel = !isPast(startOfDay(fromDate)) && !isCancelled;
 
                     return (
