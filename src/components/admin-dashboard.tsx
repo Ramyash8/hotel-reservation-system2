@@ -308,7 +308,7 @@ export function AdminDashboard() {
                                     <div className="flex items-center gap-2">
                                         <Calendar className="h-4 w-4" />
                                         <span>
-                                            {format(new Date(booking.fromDate as Date), "LLL d")} - {format(new Date(booking.toDate as Date), "LLL d, yyyy")}
+                                            {format(booking.fromDate, "LLL d")} - {format(booking.toDate, "LLL d, yyyy")}
                                         </span>
                                     </div>
                                 </TableCell>

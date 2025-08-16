@@ -2,7 +2,7 @@
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp, writeBatch, documentId } from 'firebase/firestore';
 import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom, NewBooking } from './types';
-import { differenceInDays, isPast } from 'date-fns';
+import { differenceInDays, isPast, startOfDay } from 'date-fns';
 
 // This file should solely interact with Firestore as the single source of truth.
 // All sample data logic is now handled in firebase.ts for seeding purposes.
@@ -205,8 +205,8 @@ export const createRoom = async (roomData: NewRoom): Promise<Room> => {
 
 // Booking Functions
 export const createBooking = async (bookingData: NewBooking): Promise<Booking> => {
-    const from = bookingData.fromDate instanceof Timestamp ? bookingData.fromDate.toDate() : bookingData.fromDate;
-    const to = bookingData.toDate instanceof Timestamp ? bookingData.toDate.toDate() : bookingData.toDate;
+    const from = bookingData.fromDate;
+    const to = bookingData.toDate;
 
     if (!from || !to || !bookingData.userId || !bookingData.roomId) {
         throw new Error("Missing required booking information.");
@@ -226,6 +226,8 @@ export const createBooking = async (bookingData: NewBooking): Promise<Booking> =
     
     const newBookingData = {
         ...bookingData,
+        fromDate: Timestamp.fromDate(from),
+        toDate: Timestamp.fromDate(to),
         totalPrice: room.price * numberOfNights,
         status: 'confirmed' as const,
         createdAt: serverTimestamp(),
@@ -240,10 +242,14 @@ export const createBooking = async (bookingData: NewBooking): Promise<Booking> =
     const docRef = await addDoc(bookingsCol, newBookingData);
     console.log("New booking created in Firestore:", docRef.id);
     
-    return {
+    const finalBooking: Booking = {
         id: docRef.id,
-        ...bookingData,
-        totalPrice: room.price * numberOfNights,
+        userId: bookingData.userId,
+        roomId: bookingData.roomId,
+        hotelId: bookingData.hotelId,
+        fromDate: from,
+        toDate: to,
+        totalPrice: newBookingData.totalPrice,
         status: 'confirmed',
         createdAt: new Date(),
         hotelName: hotel.name,
@@ -253,6 +259,7 @@ export const createBooking = async (bookingData: NewBooking): Promise<Booking> =
         userName: user.name,
         hotelOwnerId: hotel.ownerId,
     };
+    return finalBooking;
 };
 
 export const getBookingsByUser = async (userId: string): Promise<Booking[]> => {
@@ -279,9 +286,10 @@ export const cancelBooking = async (bookingId: string): Promise<void> => {
     if (booking.status === 'cancelled') {
         throw new Error("This booking has already been cancelled.");
     }
-
-    const checkInDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : booking.fromDate;
-    if (isPast(checkInDate)) {
+    
+    // Check if the check-in date is in the past.
+    // startOfDay is used to ensure that a booking can be cancelled on the same day as check-in.
+    if (isPast(startOfDay(booking.fromDate))) {
         throw new Error("Cannot cancel a booking after the check-in date has passed.");
     }
     
