@@ -38,7 +38,15 @@ export function UserBookings() {
         if (user) {
             setLoading(true);
             getBookingsByUser(user.id)
-                .then(b => setBookings(b.sort((a,b) => (b.fromDate as Date).getTime() - (a.fromDate as Date).getTime())))
+                .then(b => {
+                    // Ensure fromDate is a Date object for sorting
+                    const sortedBookings = b.sort((a,b) => {
+                        const dateA = a.fromDate instanceof Timestamp ? a.fromDate.toDate() : a.fromDate;
+                        const dateB = b.fromDate instanceof Timestamp ? b.fromDate.toDate() : b.fromDate;
+                        return dateB.getTime() - dateA.getTime();
+                    });
+                    setBookings(sortedBookings);
+                })
                 .finally(() => setLoading(false));
         } else {
             setLoading(false);
@@ -104,10 +112,12 @@ export function UserBookings() {
         <>
             <div className="space-y-8">
                 {bookings.map((booking) => {
-                    const fromDateAsDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : booking.fromDate;
-                    const toDateAsDate = booking.toDate instanceof Timestamp ? booking.toDate.toDate() : booking.toDate;
+                    // Ensure dates are correctly converted from Timestamp if necessary
+                    const fromDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : booking.fromDate;
+                    const toDate = booking.toDate instanceof Timestamp ? booking.toDate.toDate() : booking.toDate;
+
                     const isCancelled = booking.status === 'cancelled';
-                    const canCancel = !isPast(startOfDay(fromDateAsDate)) && !isCancelled;
+                    const canCancel = !isPast(startOfDay(fromDate)) && !isCancelled;
 
                     return (
                         <Card key={booking.id} className="overflow-hidden shadow-lg transition-all hover:shadow-xl">
@@ -136,14 +146,14 @@ export function UserBookings() {
                                                 <Calendar className="h-5 w-5 text-primary" />
                                                 <div>
                                                     <p className="font-semibold">Check-in</p>
-                                                    <p>{format(fromDateAsDate, 'eee, LLL dd, yyyy')}</p>
+                                                    <p>{format(fromDate, 'eee, LLL dd, yyyy')}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="h-5 w-5 text-primary" />
                                                 <div>
                                                     <p className="font-semibold">Check-out</p>
-                                                    <p>{format(toDateAsDate, 'eee, LLL dd, yyyy')}</p>
+                                                    <p>{format(toDate, 'eee, LLL dd, yyyy')}</p>
                                                 </div>
                                             </div>
                                         </div>
