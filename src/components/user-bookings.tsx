@@ -114,7 +114,20 @@ export function UserBookings() {
                     const fromDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : new Date(booking.fromDate);
                     const toDate = booking.toDate instanceof Timestamp ? booking.toDate.toDate() : new Date(booking.toDate);
                     const isCancelled = booking.status === 'cancelled';
-                    const canCancel = !isPast(startOfDay(new Date(booking.fromDate as Date))) && !isCancelled;
+                    
+                    const fromDateAsDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : new Date(booking.fromDate);
+                    const checkDate = startOfDay(fromDateAsDate);
+                    const isDateInPast = isPast(checkDate);
+
+                    const canCancel = !isDateInPast && !isCancelled;
+
+                    console.log(`--- DEBUG FOR BOOKING ID: ${booking.id} ---`);
+                    console.log(`Raw fromDate:`, booking.fromDate);
+                    console.log(`fromDasteAsDate (start of day):`, checkDate);
+                    console.log(`Is date in past?`, isDateInPast);
+                    console.log(`Is booking cancelled?`, isCancelled);
+                    console.log(`Result: Can cancel?`, canCancel);
+                    console.log(`-------------------------------------------`);
 
 
                     return (
