@@ -2,7 +2,7 @@
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp, writeBatch, documentId } from 'firebase/firestore';
 import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom, NewBooking } from './types';
-import { differenceInDays, isFuture } from 'date-fns';
+import { differenceInDays, isPast } from 'date-fns';
 
 // This file should solely interact with Firestore as the single source of truth.
 // All sample data logic is now handled in firebase.ts for seeding purposes.
@@ -281,13 +281,13 @@ export const cancelBooking = async (bookingId: string): Promise<void> => {
     }
 
     const checkInDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : booking.fromDate;
-    if (isFuture(checkInDate)) {
-         await updateDoc(bookingRef, {
-            status: 'cancelled',
-            cancelledAt: serverTimestamp()
-        });
-        console.log(`Booking ${bookingId} cancelled.`);
-    } else {
+    if (isPast(checkInDate)) {
         throw new Error("Cannot cancel a booking after the check-in date has passed.");
     }
+    
+    await updateDoc(bookingRef, {
+        status: 'cancelled',
+        cancelledAt: serverTimestamp()
+    });
+    console.log(`Booking ${bookingId} cancelled.`);
 };
