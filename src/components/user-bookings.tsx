@@ -104,7 +104,8 @@ export function UserBookings() {
         <>
             <div className="space-y-8">
                 {bookings.map((booking) => {
-                    const fromDateAsDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : (booking.fromDate as Date);
+                    const fromDateAsDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : booking.fromDate;
+                    const toDateAsDate = booking.toDate instanceof Timestamp ? booking.toDate.toDate() : booking.toDate;
                     const isCancelled = booking.status === 'cancelled';
                     const canCancel = !isPast(startOfDay(fromDateAsDate)) && !isCancelled;
 
@@ -142,7 +143,7 @@ export function UserBookings() {
                                                 <Calendar className="h-5 w-5 text-primary" />
                                                 <div>
                                                     <p className="font-semibold">Check-out</p>
-                                                    <p>{format(booking.toDate as Date, 'eee, LLL dd, yyyy')}</p>
+                                                    <p>{format(toDateAsDate, 'eee, LLL dd, yyyy')}</p>
                                                 </div>
                                             </div>
                                         </div>
