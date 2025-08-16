@@ -105,8 +105,8 @@ export function UserBookings() {
             <div className="space-y-8">
                 {bookings.map((booking) => {
                     const isCancelled = booking.status === 'cancelled';
-                    const checkInDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : booking.fromDate;
-                    const canCancel = isFuture(checkInDate) && !isCancelled;
+                    const toDate = booking.toDate instanceof Timestamp ? booking.toDate.toDate() : booking.toDate;
+                    const canCancel = isFuture(toDate) && !isCancelled;
 
                     return (
                         <Card key={booking.id} className="overflow-hidden shadow-lg transition-all hover:shadow-xl">
@@ -135,14 +135,14 @@ export function UserBookings() {
                                                 <Calendar className="h-5 w-5 text-primary" />
                                                 <div>
                                                     <p className="font-semibold">Check-in</p>
-                                                    <p>{format(checkInDate, 'eee, LLL dd, yyyy')}</p>
+                                                    <p>{format(new Date(booking.fromDate as Date), 'eee, LLL dd, yyyy')}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="h-5 w-5 text-primary" />
                                                 <div>
                                                     <p className="font-semibold">Check-out</p>
-                                                    <p>{format(new Date(booking.toDate as Date), 'eee, LLL dd, yyyy')}</p>
+                                                    <p>{format(toDate, 'eee, LLL dd, yyyy')}</p>
                                                 </div>
                                             </div>
                                         </div>
