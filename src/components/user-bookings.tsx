@@ -111,10 +111,8 @@ export function UserBookings() {
         <>
             <div className="space-y-8">
                 {bookings.map((booking) => {
-                    // Ensure dates are correctly converted from Timestamp if necessary
                     const fromDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : new Date(booking.fromDate);
                     const toDate = booking.toDate instanceof Timestamp ? booking.toDate.toDate() : new Date(booking.toDate);
-
                     const isCancelled = booking.status === 'cancelled';
                     const canCancel = !isPast(startOfDay(fromDate)) && !isCancelled;
 
