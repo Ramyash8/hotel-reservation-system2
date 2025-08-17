@@ -4,14 +4,13 @@ import { getHotelById, getRoomsByHotelId } from '@/lib/data';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
-import { RoomCard } from '@/components/room-card';
 import { Separator } from '@/components/ui/separator';
 import { Share2, Heart, Star, ShieldCheck, MapPin, Wifi, ParkingSquare, UtensilsCrossed, Dumbbell, Waves, Sparkles } from 'lucide-react';
-import type { Room } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ImageGrid } from '@/components/image-grid';
 import { BookingCard } from '@/components/booking-card';
 import { MeetTheHost } from '@/components/meet-the-host';
+import { ReviewsSection } from '@/components/reviews-section';
 
 type HotelPageProps = {
   params: {
@@ -131,12 +130,8 @@ export default async function HotelPage({ params }: HotelPageProps) {
             </div>
             
              <Separator className="my-12" />
-
-             {/* Reviews Section - Placeholder */}
-             <div>
-                <h2 className="text-2xl font-semibold mb-4">Reviews</h2>
-                <p className="text-muted-foreground">Review details will be displayed here.</p>
-             </div>
+             
+             <ReviewsSection />
 
              <Separator className="my-12" />
 
