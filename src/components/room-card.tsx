@@ -20,6 +20,9 @@ interface RoomCardProps {
   hotel: Hotel
 }
 
+// NOTE: This component is currently not used on the main hotel page, 
+// as booking is handled by the BookingCard. 
+// It's kept for potential future use, e.g., on a dedicated rooms page.
 export function RoomCard({ room, hotel }: RoomCardProps) {
   const { toast } = useToast()
   const { user } = useAuth()

@@ -1,19 +1,41 @@
 
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getHotelById, getRoomsByHotelId } from '@/lib/data';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RoomCard } from '@/components/room-card';
-import { MapPin, Star, Share2, Heart } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Share2, Heart, Star, ShieldCheck, MapPin, Wifi, ParkingSquare, UtensilsCrossed, Dumbbell, Waves, Sparkles } from 'lucide-react';
+import type { Room } from '@/lib/types';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ImageGrid } from '@/components/image-grid';
+import { BookingCard } from '@/components/booking-card';
+import { MeetTheHost } from '@/components/meet-the-host';
 
 type HotelPageProps = {
   params: {
     id: string;
   };
 };
+
+const facilityIconMap: { [key: string]: React.ElementType } = {
+    wifi: Wifi,
+    parking: ParkingSquare,
+    restaurant: UtensilsCrossed,
+    gym: Dumbbell,
+    pool: Waves,
+    spa: Sparkles,
+};
+const facilityNameMap: { [key: string]: string } = {
+    wifi: "Free WiFi",
+    parking: "Parking",
+    restaurant: "Restaurant",
+    gym: "Gym",
+    pool: "Swimming Pool",
+    spa: "Spa",
+}
+
 
 export default async function HotelPage({ params }: HotelPageProps) {
   const hotel = await getHotelById(params.id);
@@ -23,6 +45,16 @@ export default async function HotelPage({ params }: HotelPageProps) {
   }
 
   const rooms = await getRoomsByHotelId(params.id);
+
+  const allImages = [
+      hotel.coverImage,
+      ...rooms.flatMap(room => room.images).slice(0, 4)
+  ];
+  // Ensure we have 5 images for the grid, duplicating if necessary
+  while(allImages.length > 0 && allImages.length < 5) {
+      allImages.push(...allImages.slice(0, 5 - allImages.length));
+  }
+
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -39,64 +71,115 @@ export default async function HotelPage({ params }: HotelPageProps) {
                         <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {hotel.location}</span>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="sm" className="flex items-center gap-2"><Share2 className="w-4 h-4" /> Share</Button>
-                        <Button variant="ghost" size="sm" className="flex items-center gap-2"><Heart className="w-4 h-4" /> Save</Button>
+                        <Button variant="ghost" size="sm" className="flex items-center gap-2 underline"><Share2 className="w-4 h-4" /> Share</Button>
+                        <Button variant="ghost" size="sm" className="flex items-center gap-2 underline"><Heart className="w-4 h-4" /> Save</Button>
                     </div>
                 </div>
             </div>
 
             {/* Image Gallery */}
-             <div className="relative h-[60vh] w-full overflow-hidden rounded-2xl">
-                <Image
-                    src={hotel.coverImage}
-                    alt={`Cover image for ${hotel.name}`}
-                    layout="fill"
-                    objectFit="cover"
-                    className="bg-muted"
-                    data-ai-hint={(hotel as any)['data-ai-hint'] || 'hotel interior'}
-                />
-            </div>
+            <ImageGrid images={allImages} />
             
             {/* Main Content */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mt-12">
-                <div className="lg:col-span-8">
+                <div className="lg:col-span-7">
                     <div className="pb-8 border-b">
-                        <h2 className="text-2xl font-semibold">About this hotel</h2>
-                        <p className="mt-4 text-muted-foreground leading-relaxed">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-semibold">Entire rental unit in {hotel.location.split(',')[0]}</h2>
+                            <Avatar className="h-12 w-12">
+                                <AvatarImage src={`https://i.pravatar.cc/150?u=${hotel.ownerId}`} alt={hotel.ownerName} />
+                                <AvatarFallback>{hotel.ownerName?.charAt(0).toUpperCase()}</AvatarFallback>
+                             </Avatar>
+                        </div>
+                        <p className="mt-2 text-muted-foreground leading-relaxed">
                             {hotel.description}
                         </p>
                     </div>
-                    
-                    <div className="mt-8">
-                        <h2 className="text-2xl font-semibold">Available Rooms</h2>
-                        <div className="mt-6 grid grid-cols-1 gap-8">
-                            {rooms.map(room => (
-                                <RoomCard key={room.id} room={room} hotel={hotel} />
-                            ))}
-                        </div>
-                         {rooms.length === 0 && (
-                            <Card>
-                                <CardContent className="p-8 text-center text-muted-foreground">
-                                    There are no available rooms for this hotel at the moment.
-                                </CardContent>
-                            </Card>
-                        )}
+
+                    <div className="py-8 border-b">
+                         <div className="space-y-4">
+                            <div className="flex items-start gap-4">
+                                <ShieldCheck className="w-6 h-6 mt-1" />
+                                <div>
+                                    <h3 className="font-semibold">Identity verified</h3>
+                                    <p className="text-sm text-muted-foreground">The host's identity has been confirmed for your safety.</p>
+                                </div>
+                            </div>
+                         </div>
                     </div>
+
+                     <div className="py-8 border-b">
+                        <h2 className="text-2xl font-semibold mb-4">What this place offers</h2>
+                        <div className="grid grid-cols-2 gap-4">
+                            {hotel.facilities.map(facility => {
+                                const Icon = facilityIconMap[facility];
+                                return Icon ? (
+                                    <div key={facility} className="flex items-center gap-3">
+                                        <Icon className="w-6 h-6"/>
+                                        <span>{facilityNameMap[facility]}</span>
+                                    </div>
+                                ) : null;
+                            })}
+                        </div>
+                    </div>
+                    
                 </div>
 
-                <aside className="lg:col-span-4 lg:sticky top-24 h-fit">
-                   <Card className="p-6">
-                        <h3 className="font-headline text-lg font-semibold">Hotel Policies</h3>
-                        <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                            <li className="flex justify-between"><span>Check-in:</span> <span className="font-medium">{hotel.checkInTime}</span></li>
-                            <li className="flex justify-between"><span>Check-out:</span> <span className="font-medium">{hotel.checkOutTime}</span></li>
-                            <li className="flex justify-between"><span>Pet Policy:</span> <span className="font-medium">{hotel.isPetFriendly ? 'Allowed' : 'Not Allowed'}</span></li>
-                        </ul>
-                        <h3 className="font-headline text-lg font-semibold mt-6">Cancellation</h3>
-                        <p className="mt-2 text-sm text-muted-foreground">{hotel.cancellationPolicy}</p>
-                   </Card>
+                <aside className="lg:col-span-5 lg:sticky top-24 h-fit">
+                   <BookingCard rooms={rooms} hotel={hotel} />
                 </aside>
             </div>
+            
+             <Separator className="my-12" />
+
+             {/* Reviews Section - Placeholder */}
+             <div>
+                <h2 className="text-2xl font-semibold mb-4">Reviews</h2>
+                <p className="text-muted-foreground">Review details will be displayed here.</p>
+             </div>
+
+             <Separator className="my-12" />
+
+             {/* Map Section - Placeholder */}
+              <div>
+                <h2 className="text-2xl font-semibold mb-4">Where you'll be</h2>
+                 <div className="h-96 bg-muted rounded-xl flex items-center justify-center">
+                    <p>Map placeholder</p>
+                 </div>
+              </div>
+
+             <Separator className="my-12" />
+
+             <MeetTheHost hotel={hotel} />
+
+
+             <Separator className="my-12" />
+
+              <div>
+                <h2 className="text-2xl font-semibold mb-4">Things to know</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div>
+                        <h3 className="font-semibold">House rules</h3>
+                        <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                            <li>Check-in: {hotel.checkInTime}</li>
+                            <li>Check-out: {hotel.checkOutTime}</li>
+                             <li>{hotel.isPetFriendly ? 'Pets allowed' : 'No pets allowed'}</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold">Health & safety</h3>
+                         <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                            <li>Carbon monoxide alarm</li>
+                            <li>Smoke alarm</li>
+                        </ul>
+                    </div>
+                     <div>
+                        <h3 className="font-semibold">Cancellation policy</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">{hotel.cancellationPolicy}</p>
+                    </div>
+                </div>
+              </div>
+
 
         </div>
       </main>
