@@ -84,21 +84,20 @@ export function ReviewCard({ review }: ReviewCardProps) {
                             </div>
                         </DialogTrigger>
                         <DialogContent className="max-w-4xl h-[80vh] p-0 border-0">
-                            <DialogHeader className="sr-only">
+                           <DialogHeader className="sr-only">
                                 <DialogTitle>Review Image Gallery</DialogTitle>
                                 <DialogDescription>A carousel of images attached to the review by {review.author}.</DialogDescription>
                             </DialogHeader>
                            <Carousel className="w-full h-full">
                                 <CarouselContent className="h-full">
                                     {review.images.map((src, index) => (
-                                        <CarouselItem key={index} className="h-full">
+                                        <CarouselItem key={index} className="h-full flex items-center justify-center p-4">
                                             <div className="relative h-full w-full">
                                                 <Image
                                                     src={src}
                                                     alt={`Review gallery image ${index + 1}`}
                                                     layout="fill"
                                                     objectFit="contain"
-                                                    className="bg-muted/50"
                                                 />
                                             </div>
                                         </CarouselItem>

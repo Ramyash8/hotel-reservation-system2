@@ -66,15 +66,15 @@ export function ImageGrid({ images }: ImageGridProps) {
             </div>
             
             <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
-                <DialogContent className="max-w-7xl h-[90vh] p-4 border-0 flex items-center justify-center">
+                <DialogContent className="max-w-7xl h-[90vh] p-0 border-0">
                     <DialogHeader className="sr-only">
                         <DialogTitle>Image Gallery</DialogTitle>
                         <DialogDescription>A carousel of all images for this hotel.</DialogDescription>
                     </DialogHeader>
-                   <Carousel className="w-full h-full max-w-6xl max-h-full">
+                   <Carousel className="w-full h-full">
                         <CarouselContent className="h-full">
                             {images.map((src, index) => (
-                                <CarouselItem key={index} className="h-full flex items-center justify-center">
+                                <CarouselItem key={index} className="h-full flex items-center justify-center p-4">
                                     <div className="relative h-full w-full">
                                         <Image
                                             src={src}
@@ -88,8 +88,8 @@ export function ImageGrid({ images }: ImageGridProps) {
                         </CarouselContent>
                          {images.length > 1 && (
                             <>
-                                <CarouselPrevious className="absolute left-[-50px] bg-background/50 hover:bg-background" />
-                                <CarouselNext className="absolute right-[-50px] bg-background/50 hover:bg-background" />
+                                <CarouselPrevious className="absolute left-4 bg-background/50 hover:bg-background" />
+                                <CarouselNext className="absolute right-4 bg-background/50 hover:bg-background" />
                             </>
                          )}
                     </Carousel>
