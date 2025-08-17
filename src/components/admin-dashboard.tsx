@@ -3,10 +3,11 @@
 
 import React, { useState, useEffect, useTransition } from "react";
 import {
+  getAllUsers,
   updateHotelStatus,
   updateRoomStatus,
 } from "@/lib/data";
-import type { Hotel, Room, Booking } from "@/lib/types";
+import type { Hotel, Room, Booking, User } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -19,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Loader2, Building, BedDouble, User, BookOpen, Calendar, Archive } from "lucide-react";
+import { Check, X, Loader2, Building, BedDouble, User as UserIcon, BookOpen, Calendar, Archive, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
@@ -28,6 +29,8 @@ import { db } from "@/lib/firebase";
 import { collection, query, where, onSnapshot, doc, getDoc, Timestamp } from "firebase/firestore";
 import { DataTable } from "./admin/data-table";
 import { columns as allHotelsColumns } from "./admin/all-hotels-columns";
+import { columns as allUsersColumns } from "./admin/all-users-columns";
+
 
 // Helper to convert Firestore doc to our types, handling Timestamps
 const fromFirestore = <T extends { id: string }>(docSnap: any): T => {
@@ -54,6 +57,7 @@ const fromFirestore = <T extends { id: string }>(docSnap: any): T => {
 export function AdminDashboard() {
   const [pendingHotels, setPendingHotels] = useState<Hotel[]>([]);
   const [allHotels, setAllHotels] = useState<Hotel[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [pendingRooms, setPendingRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,6 +70,7 @@ export function AdminDashboard() {
     const hotelsQuery = query(collection(db, 'hotels'));
     const roomsQuery = query(collection(db, 'rooms'), where('status', '==', 'pending'));
     const bookingsQuery = query(collection(db, 'bookings'));
+    const usersQuery = query(collection(db, 'users'));
 
     const unsubscribeHotels = onSnapshot(hotelsQuery, (snapshot) => {
         const hotelsData = snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
@@ -83,19 +88,24 @@ export function AdminDashboard() {
              return { ...room, hotelName: hotelData ? hotelData.name : 'Unknown Hotel' };
         }));
         setPendingRooms(enrichedRooms);
-        setLoading(false);
     });
 
     const unsubscribeBookings = onSnapshot(bookingsQuery, (snapshot) => {
         const bookingsData = snapshot.docs.map(doc => fromFirestore<Booking>(doc));
         setBookings(bookingsData);
-        setLoading(false);
     });
+
+    const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
+        const usersData = snapshot.docs.map(doc => fromFirestore<User>(doc));
+        setAllUsers(usersData);
+    });
+
 
     return () => {
         unsubscribeHotels();
         unsubscribeRooms();
         unsubscribeBookings();
+        unsubscribeUsers();
     };
 }, []);
 
@@ -130,7 +140,7 @@ export function AdminDashboard() {
 
   return (
     <Tabs defaultValue="all-hotels">
-      <TabsList className="grid w-full grid-cols-4">
+      <TabsList className="grid w-full grid-cols-5">
         <TabsTrigger value="hotels">
           <Building className="mr-2 h-4 w-4" />
           Pending Hotels <Badge className="ml-2">{pendingHotels.length}</Badge>
@@ -146,6 +156,10 @@ export function AdminDashboard() {
         <TabsTrigger value="bookings">
           <BookOpen className="mr-2 h-4 w-4" />
           All Bookings <Badge className="ml-2">{bookings.length}</Badge>
+        </TabsTrigger>
+         <TabsTrigger value="users">
+            <Users className="mr-2 h-4 w-4" />
+            All Users <Badge className="ml-2">{allUsers.length}</Badge>
         </TabsTrigger>
       </TabsList>
       <TabsContent value="hotels">
@@ -182,7 +196,7 @@ export function AdminDashboard() {
                             <Tooltip>
                                 <TooltipTrigger>
                                     <div className="flex items-center gap-2">
-                                        <User className="h-4 w-4" />
+                                        <UserIcon className="h-4 w-4" />
                                         <span>{hotel.ownerName}</span>
                                     </div>
                                 </TooltipTrigger>
@@ -296,7 +310,7 @@ export function AdminDashboard() {
                             <TableRow key={booking.id}>
                                 <TableCell>
                                     <div className="flex items-center gap-2">
-                                        <User className="h-4 w-4" />
+                                        <UserIcon className="h-4 w-4" />
                                         <span>{booking.userName}</span>
                                     </div>
                                 </TableCell>
@@ -308,7 +322,7 @@ export function AdminDashboard() {
                                     <div className="flex items-center gap-2">
                                         <Calendar className="h-4 w-4" />
                                         <span>
-                                            {format(booking.fromDate, "LLL d")} - {format(booking.toDate, "LLL d, yyyy")}
+                                            {format(booking.fromDate as Date, "LLL d")} - {format(booking.toDate as Date, "LLL d, yyyy")}
                                         </span>
                                     </div>
                                 </TableCell>
@@ -323,6 +337,17 @@ export function AdminDashboard() {
                         )}
                     </TableBody>
                 </Table>
+            </CardContent>
+        </Card>
+      </TabsContent>
+      <TabsContent value="users">
+        <Card>
+            <CardHeader>
+                <CardTitle>All Users</CardTitle>
+                <CardDescription>A complete list of all users on the platform.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <DataTable columns={allUsersColumns} data={allUsers} />
             </CardContent>
         </Card>
       </TabsContent>

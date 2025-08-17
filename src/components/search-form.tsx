@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState } from 'react';
@@ -56,7 +57,7 @@ export function SearchForm() {
                    
                    <Popover>
                         <PopoverTrigger asChild>
-                           <button className="w-full md:w-auto flex-grow flex items-center p-2 rounded-full hover:bg-secondary/50 transition-colors text-left">
+                           <button type="button" className="w-full md:w-auto flex-grow flex items-center p-2 rounded-full hover:bg-secondary/50 transition-colors text-left">
                                 <div className="px-2">
                                     <p className="text-xs font-bold">Check in</p>
                                     <p className="text-sm text-muted-foreground">{dateRange?.from ? format(dateRange.from, "LLL dd") : "Add dates"}</p>
@@ -78,7 +79,7 @@ export function SearchForm() {
                     
                      <Popover>
                         <PopoverTrigger asChild>
-                           <button className="w-full md:w-auto flex-grow flex items-center p-2 rounded-full hover:bg-secondary/50 transition-colors text-left">
+                           <button type="button" className="w-full md:w-auto flex-grow flex items-center p-2 rounded-full hover:bg-secondary/50 transition-colors text-left">
                                <div className="px-2">
                                     <p className="text-xs font-bold">Check out</p>
                                     <p className="text-sm text-muted-foreground">{dateRange?.to ? format(dateRange.to, "LLL dd") : "Add dates"}</p>
@@ -110,9 +111,9 @@ export function SearchForm() {
                                 onChange={(e) => setGuests(e.target.value)}
                             />
                         </div>
-                        <Button type="submit" size="lg" className="rounded-full bg-primary h-12 w-24 ml-2">
-                            <Search className="h-5 w-5 mr-1" />
-                            Search
+                        <Button type="submit" size="icon" className="rounded-full bg-primary h-12 w-12 ml-2">
+                            <Search className="h-5 w-5" />
+                            <span className="sr-only">Search</span>
                         </Button>
                     </div>
                 </div>

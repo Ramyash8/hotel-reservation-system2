@@ -1,8 +1,8 @@
 
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp, writeBatch, documentId } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp, writeBatch, documentId, onSnapshot } from 'firebase/firestore';
 import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom, NewBooking } from './types';
-import { differenceInDays, isPast, startOfDay } from 'date-fns';
+import { differenceInDays, startOfDay } from 'date-fns';
 
 // This file should solely interact with Firestore as the single source of truth.
 // All sample data logic is now handled in firebase.ts for seeding purposes.
@@ -94,6 +94,11 @@ export const getUserById = async (id: string): Promise<User | undefined> => {
     }
 };
 
+export const getAllUsers = async (): Promise<User[]> => {
+    const snapshot = await getDocs(usersCol);
+    return snapshot.docs.map(doc => fromFirestore<User>(doc)).filter(Boolean) as User[];
+};
+
 
 // API-like access patterns
 export const getApprovedHotels = async (): Promise<Hotel[]> => {
@@ -103,16 +108,27 @@ export const getApprovedHotels = async (): Promise<Hotel[]> => {
 };
 
 export const searchHotels = async (criteria: HotelSearchCriteria): Promise<Hotel[]> => {
-    const allApproved = await getApprovedHotels();
-    if (!criteria.destination) {
-        return allApproved;
+    let hotels = await getApprovedHotels();
+
+    if (criteria.destination) {
+        const searchLower = criteria.destination.toLowerCase();
+        hotels = hotels.filter(hotel =>
+            (hotel.name.toLowerCase().includes(searchLower) ||
+            hotel.location.toLowerCase().includes(searchLower))
+        );
     }
 
-    const searchLower = criteria.destination.toLowerCase();
-    return allApproved.filter(hotel =>
-        (hotel.name.toLowerCase().includes(searchLower) ||
-        hotel.location.toLowerCase().includes(searchLower))
-    );
+    if (criteria.facilities && criteria.facilities.length > 0) {
+        hotels = hotels.filter(hotel =>
+            criteria.facilities!.every(facility => hotel.facilities.includes(facility))
+        );
+    }
+
+    // Since we don't have price on the hotel model directly, we can't filter by it here.
+    // A real implementation would involve more complex queries or a search service.
+    // For now, we'll imagine it's pre-filtered or handle it on the client if needed.
+
+    return hotels;
 };
 
 export const getHotelById = async (id: string): Promise<Hotel | undefined> => {

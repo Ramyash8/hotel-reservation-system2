@@ -52,6 +52,7 @@ export type HotelSearchCriteria = {
   destination?: string;
   dateRange?: { from: Date; to: Date };
   guests?: number;
+  facilities?: string[];
 }
 
 export type Room = {

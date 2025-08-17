@@ -3,10 +3,10 @@ import Link from 'next/link';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { HotelCard } from '@/components/hotel-card';
-import { SearchForm } from '@/components/search-form';
-import { getApprovedHotels, searchHotels } from '@/lib/data';
+import { searchHotels } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
-import { SearchIcon } from 'lucide-react';
+import { SearchIcon, Wifi, ParkingSquare, UtensilsCrossed, Dumbbell, Waves, Sparkles } from 'lucide-react';
+import { SearchFilters } from '@/components/search-filters';
 
 type SearchPageProps = {
     searchParams: {
@@ -14,15 +14,17 @@ type SearchPageProps = {
         from?: string;
         to?: string;
         guests?: string;
+        facilities?: string;
     }
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
     const hotels = await searchHotels({
         destination: searchParams.destination,
+        facilities: searchParams.facilities?.split(','),
     });
 
-    const hasSearchParams = Object.keys(searchParams).length > 0;
+    const hasSearchParams = Object.keys(searchParams).length > 0 && !!searchParams.destination;
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
@@ -37,7 +39,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         <aside className="lg:col-span-3 mb-8 lg:mb-0">
                            <Card className="p-4 sticky top-24">
                              <h3 className="text-lg font-semibold mb-4">Refine Search</h3>
-                             <SearchForm />
+                             <SearchFilters searchParams={searchParams}/>
                            </Card>
                         </aside>
                         <div className="lg:col-span-9">
@@ -66,4 +68,3 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         </div>
     );
 }
-

@@ -15,6 +15,8 @@ import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { Button } from "./ui/button";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 
 export function OwnerDashboard() {
@@ -24,12 +26,6 @@ export function OwnerDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddingHotel, setIsAddingHotel] = useState(false);
-
-  useEffect(() => {
-    if (user?.id) {
-      fetchData();
-    }
-  }, [user?.id]);
 
   const fetchData = async () => {
     if(!user?.id) return;
@@ -44,6 +40,29 @@ export function OwnerDashboard() {
     setBookings(ownerBookings);
     setLoading(false);
   };
+  
+  useEffect(() => {
+    if (user?.id) {
+      setLoading(true);
+      
+      // Initial fetch
+      fetchData();
+
+      // Listen for real-time booking updates
+      const bookingsQuery = query(collection(db, 'bookings'), where('hotelOwnerId', '==', user.id));
+      const unsubscribeBookings = onSnapshot(bookingsQuery, (snapshot) => {
+        const updatedBookings = snapshot.docs.map(doc => doc.data() as Booking);
+        setBookings(updatedBookings);
+      });
+
+      // You could add listeners for hotels and rooms too if needed
+      // For now, we only make bookings real-time for the owner.
+
+      return () => {
+        unsubscribeBookings();
+      };
+    }
+  }, [user?.id]);
 
 
   if (loading) {
