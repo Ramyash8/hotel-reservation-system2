@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 import { ThumbsUp, Grid3x3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import React, { useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 
 interface ImageGridProps {
@@ -67,6 +67,10 @@ export function ImageGrid({ images }: ImageGridProps) {
             
             <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
                 <DialogContent className="max-w-7xl h-[90vh] p-0 border-0">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>Image Gallery</DialogTitle>
+                        <DialogDescription>A carousel of all images for this hotel.</DialogDescription>
+                    </DialogHeader>
                    <Carousel className="w-full h-full">
                         <CarouselContent className="h-full">
                             {images.map((src, index) => (
