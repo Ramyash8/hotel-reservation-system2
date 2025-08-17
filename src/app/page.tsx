@@ -1,18 +1,27 @@
+
 import Link from 'next/link';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { HotelCard } from '@/components/hotel-card';
-import { getApprovedHotels } from '@/lib/data';
+import { getApprovedHotels, getRoomsByHotelId } from '@/lib/data';
 import { SearchForm } from '@/components/search-form';
 import { Button } from '@/components/ui/button';
 
 export default async function HomePage() {
   const allHotels = await getApprovedHotels();
 
-  // Create different categories for demonstration, in a real app this would come from the database
-  const popularInPune = allHotels.filter(h => h.location.toLowerCase().includes('turkey')).slice(0, 6);
-  const inSouthGoa = allHotels.filter(h => h.location.toLowerCase().includes('greece')).slice(0, 6);
+  // Fetch prices for all hotels
+  const hotelsWithPricesPromises = allHotels.map(async hotel => {
+    const rooms = await getRoomsByHotelId(hotel.id);
+    const cheapestRoom = rooms.reduce((min, room) => (room.price < min ? room.price : min), Infinity);
+    return { ...hotel, price: rooms.length > 0 ? cheapestRoom : null };
+  });
 
+  const hotelsWithPrices = await Promise.all(hotelsWithPricesPromises);
+
+  // Create different categories for demonstration, in a real app this would come from the database
+  const popularInTurkey = hotelsWithPrices.filter(h => h.location.toLowerCase().includes('turkey')).slice(0, 6);
+  const inGreece = hotelsWithPrices.filter(h => h.location.toLowerCase().includes('greece')).slice(0, 6);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -29,9 +38,9 @@ export default async function HomePage() {
               <Button variant="ghost" size="sm">Show all &gt;</Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-              {popularInPune.map((hotel) => (
+              {popularInTurkey.map((hotel) => (
                 <Link href={`/hotel/${hotel.id}`} key={hotel.id}>
-                  <HotelCard hotel={hotel} variant="compact" />
+                  <HotelCard hotel={hotel} price={hotel.price ?? undefined} variant="compact" />
                 </Link>
               ))}
             </div>
@@ -43,9 +52,9 @@ export default async function HomePage() {
                <Button variant="ghost" size="sm">Show all &gt;</Button>
             </div>
              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-              {inSouthGoa.map((hotel) => (
+              {inGreece.map((hotel) => (
                 <Link href={`/hotel/${hotel.id}`} key={hotel.id}>
-                  <HotelCard hotel={hotel} variant="compact" />
+                  <HotelCard hotel={hotel} price={hotel.price ?? undefined} variant="compact" />
                 </Link>
               ))}
             </div>
@@ -56,9 +65,9 @@ export default async function HomePage() {
               <h2 className="text-2xl font-bold tracking-tight">All Stays</h2>
             </div>
              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {allHotels.map((hotel) => (
+              {hotelsWithPrices.map((hotel) => (
                 <Link href={`/hotel/${hotel.id}`} key={hotel.id}>
-                  <HotelCard hotel={hotel} variant="compact" />
+                  <HotelCard hotel={hotel} price={hotel.price ?? undefined} variant="compact" />
                 </Link>
               ))}
             </div>

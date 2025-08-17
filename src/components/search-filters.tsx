@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Search, Wifi, ParkingSquare, UtensilsCrossed, Dumbbell, Waves, Sparkles } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
+import { Slider } from './ui/slider';
 
 const facilityOptions = [
     { id: "wifi", label: "Free WiFi", icon: Wifi },
@@ -22,6 +23,8 @@ interface SearchFiltersProps {
     searchParams: {
         destination?: string;
         facilities?: string;
+        minPrice?: string;
+        maxPrice?: string;
     }
 }
 
@@ -29,7 +32,12 @@ export function SearchFilters({ searchParams }: SearchFiltersProps) {
     const router = useRouter();
     const currentSearchParams = useSearchParams();
     const [destination, setDestination] = useState(searchParams.destination || '');
-    const [selectedFacilities, setSelectedFacilities] = useState<string[]>(searchParams.facilities?.split(',') || []);
+    const [selectedFacilities, setSelectedFacilities] = useState<string[]>(searchParams.facilities?.split(',').filter(Boolean) || []);
+    const [priceRange, setPriceRange] = useState([
+        parseInt(searchParams.minPrice || '0', 10),
+        parseInt(searchParams.maxPrice || '1500', 10)
+    ]);
+
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -46,11 +54,14 @@ export function SearchFilters({ searchParams }: SearchFiltersProps) {
             params.delete('facilities');
         }
 
+        params.set('minPrice', priceRange[0].toString());
+        params.set('maxPrice', priceRange[1].toString());
+
         router.push(`/search?${params.toString()}`);
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
             <div>
                 <Label htmlFor="destination">Destination</Label>
                 <Input
@@ -60,6 +71,23 @@ export function SearchFilters({ searchParams }: SearchFiltersProps) {
                     value={destination}
                     onChange={(e) => setDestination(e.target.value)}
                 />
+            </div>
+
+            <div>
+                <Label>Price per night</Label>
+                <div className="mt-4">
+                    <Slider
+                        min={0}
+                        max={1500}
+                        step={50}
+                        value={priceRange}
+                        onValueChange={(value) => setPriceRange(value)}
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                        <span>${priceRange[0]}</span>
+                        <span>${priceRange[1]}</span>
+                    </div>
+                </div>
             </div>
             
             <div>

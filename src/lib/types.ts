@@ -1,4 +1,5 @@
 
+
 import { Timestamp } from 'firebase/firestore';
 
 export type User = {
@@ -53,6 +54,8 @@ export type HotelSearchCriteria = {
   dateRange?: { from: Date; to: Date };
   guests?: number;
   facilities?: string[];
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 export type Room = {

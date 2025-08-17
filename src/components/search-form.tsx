@@ -39,7 +39,7 @@ export function SearchForm() {
             <div className="flex flex-col md:flex-row items-center border rounded-full shadow-lg h-auto md:h-16 p-2 bg-background">
                 
                 <div className="w-full md:w-auto flex-grow flex items-center p-2 rounded-full hover:bg-secondary/50 transition-colors">
-                     <div className="pl-4 pr-2">
+                     <div className="pl-4 pr-2 w-full">
                         <label htmlFor="destination" className="block text-xs font-bold">Where</label>
                         <input
                             id="destination"
@@ -111,7 +111,7 @@ export function SearchForm() {
                                 onChange={(e) => setGuests(e.target.value)}
                             />
                         </div>
-                        <Button type="submit" size="icon" className="rounded-full bg-primary h-12 w-12 ml-2">
+                        <Button type="submit" size="icon" className="rounded-full bg-primary h-12 w-12 shrink-0">
                             <Search className="h-5 w-5" />
                             <span className="sr-only">Search</span>
                         </Button>

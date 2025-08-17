@@ -1,4 +1,5 @@
 
+
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,10 +9,11 @@ import { cn } from '@/lib/utils';
 
 interface HotelCardProps {
   hotel: Hotel;
+  price?: number;
   variant?: 'default' | 'compact';
 }
 
-export function HotelCard({ hotel, variant = 'default' }: HotelCardProps) {
+export function HotelCard({ hotel, price, variant = 'default' }: HotelCardProps) {
 
   if (variant === 'compact') {
     return (
@@ -38,7 +40,9 @@ export function HotelCard({ hotel, variant = 'default' }: HotelCardProps) {
              </div>
           </div>
           <p className="text-sm text-muted-foreground">{hotel.location}</p>
-          <p className="text-sm mt-1"><span className="font-bold">$250</span> / night</p>
+          {price && (
+            <p className="text-sm mt-1"><span className="font-bold">${price}</span> / night</p>
+          )}
         </div>
       </div>
     )
@@ -70,9 +74,15 @@ export function HotelCard({ hotel, variant = 'default' }: HotelCardProps) {
       </CardContent>
       <CardFooter className="flex justify-between items-center">
          <div className="flex items-center gap-1">
-            <Star className="w-5 h-5 text-accent fill-accent" />
-            <span className="font-bold">4.8</span>
-            <span className="text-sm text-muted-foreground">(245 reviews)</span>
+            {price ? (
+                <p className="text-lg"><span className="font-bold">${price}</span> / night</p>
+            ) : (
+                <>
+                 <Star className="w-5 h-5 text-accent fill-accent" />
+                 <span className="font-bold">4.8</span>
+                 <span className="text-sm text-muted-foreground">(245 reviews)</span>
+                </>
+            )}
         </div>
         <Badge variant={hotel.status === 'approved' ? 'default' : 'secondary'} className={hotel.status === 'approved' ? 'bg-green-600/20 text-green-600 border-green-600/20' : ''}>
           {hotel.status}

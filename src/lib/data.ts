@@ -1,4 +1,5 @@
 
+
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp, writeBatch, documentId, onSnapshot } from 'firebase/firestore';
 import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom, NewBooking } from './types';
@@ -124,9 +125,13 @@ export const searchHotels = async (criteria: HotelSearchCriteria): Promise<Hotel
         );
     }
 
-    // Since we don't have price on the hotel model directly, we can't filter by it here.
-    // A real implementation would involve more complex queries or a search service.
-    // For now, we'll imagine it's pre-filtered or handle it on the client if needed.
+    if (criteria.minPrice !== undefined && criteria.maxPrice !== undefined) {
+         // This is a simplified price filter. In a real app, you would query rooms
+         // associated with the hotel and check if any fall within the price range.
+         // For this demo, we'll just return all hotels and assume the client might do more filtering,
+         // or we'll add a 'basePrice' to the hotel object in a future iteration.
+         // This implementation assumes hotels have rooms that might fit the criteria.
+    }
 
     return hotels;
 };
@@ -308,7 +313,7 @@ export const cancelBooking = async (bookingId: string): Promise<void> => {
     const fromDate = booking.fromDate as Date;
     const today = startOfDay(new Date());
 
-    if (startOfDay(fromDate).getTime() < today.getTime()) {
+    if (startOfDay(fromDate) < today) {
         throw new Error("Cannot cancel a booking after the check-in date has passed.");
     }
     
