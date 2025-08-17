@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Star } from 'lucide-react';
 import { Button } from './ui/button';
 import Image from 'next/image';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 
 type Review = {
@@ -83,7 +83,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
                                 ))}
                             </div>
                         </DialogTrigger>
-                        <DialogContent className="max-w-4xl h-[80vh] p-0 border-0">
+                        <DialogContent className="max-w-4xl h-[80vh] p-0 border-0 flex items-center justify-center">
                            <DialogHeader className="sr-only">
                                 <DialogTitle>Review Image Gallery</DialogTitle>
                                 <DialogDescription>A carousel of images attached to the review by {review.author}.</DialogDescription>

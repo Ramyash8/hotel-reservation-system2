@@ -66,7 +66,7 @@ export function ImageGrid({ images }: ImageGridProps) {
             </div>
             
             <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
-                <DialogContent className="max-w-7xl h-[90vh] p-0 border-0">
+                <DialogContent className="max-w-7xl h-[90vh] p-0 border-0 flex items-center justify-center">
                     <DialogHeader className="sr-only">
                         <DialogTitle>Image Gallery</DialogTitle>
                         <DialogDescription>A carousel of all images for this hotel.</DialogDescription>
