@@ -1,12 +1,12 @@
 
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AddHotelForm } from "./add-hotel-form";
-import { getHotelsByOwner, getRoomsByOwner, getBookingsByOwner } from "@/lib/data";
+import { getRoomsByOwner, getBookingsByOwner } from "@/lib/data"; // Keep for now
 import { useAuth } from "@/hooks/use-auth";
 import type { Hotel, Room, Booking } from "@/lib/types";
 import { Loader2, User, Calendar, PlusCircle, Briefcase, ExternalLink } from "lucide-react";
@@ -15,8 +15,23 @@ import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { Button } from "./ui/button";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, onSnapshot, query, where, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+
+const fromFirestore = <T extends { id: string }>(docSnap: any): T => {
+    const data = docSnap.data();
+    const result: { [key: string]: any } = { id: docSnap.id };
+    for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+             if (data[key] instanceof Timestamp) {
+                result[key] = data[key].toDate();
+            } else {
+                result[key] = data[key];
+            }
+        }
+    }
+    return result as T;
+};
 
 
 export function OwnerDashboard() {
@@ -27,42 +42,56 @@ export function OwnerDashboard() {
   const [loading, setLoading] = useState(true);
   const [isAddingHotel, setIsAddingHotel] = useState(false);
 
-  const fetchData = async () => {
-    if(!user?.id) return;
+  const fetchData = useCallback(() => {
+    if (!user?.id) {
+        setLoading(false);
+        return;
+    };
+    
     setLoading(true);
-    const [ownerHotels, ownerRooms, ownerBookings] = await Promise.all([
-      getHotelsByOwner(user.id),
-      getRoomsByOwner(user.id),
-      getBookingsByOwner(user.id)
-    ]);
-    setHotels(ownerHotels);
-    setRooms(ownerRooms);
-    setBookings(ownerBookings);
-    setLoading(false);
-  };
+
+    const hotelsQuery = query(collection(db, 'hotels'), where('ownerId', '==', user.id));
+    const unsubscribeHotels = onSnapshot(hotelsQuery, snapshot => {
+        const ownerHotels = snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
+        setHotels(ownerHotels);
+        
+        if (ownerHotels.length > 0) {
+            const hotelIds = ownerHotels.map(h => h.id);
+
+            const roomsQuery = query(collection(db, 'rooms'), where('hotelId', 'in', hotelIds));
+            const unsubscribeRooms = onSnapshot(roomsQuery, roomSnapshot => {
+                const ownerRooms = roomSnapshot.docs.map(doc => fromFirestore<Room>(doc));
+                setRooms(ownerRooms);
+            });
+            
+            const bookingsQuery = query(collection(db, 'bookings'), where('hotelOwnerId', '==', user.id));
+            const unsubscribeBookings = onSnapshot(bookingsQuery, bookingSnapshot => {
+                const ownerBookings = bookingSnapshot.docs.map(doc => fromFirestore<Booking>(doc));
+                setBookings(ownerBookings);
+            });
+
+            setLoading(false);
+            return () => {
+                unsubscribeRooms();
+                unsubscribeBookings();
+            }
+        } else {
+            setRooms([]);
+            setBookings([]);
+            setLoading(false);
+        }
+    });
+
+    return () => {
+        unsubscribeHotels();
+    };
+
+  }, [user?.id]);
   
   useEffect(() => {
-    if (user?.id) {
-      setLoading(true);
-      
-      // Initial fetch
-      fetchData();
-
-      // Listen for real-time booking updates
-      const bookingsQuery = query(collection(db, 'bookings'), where('hotelOwnerId', '==', user.id));
-      const unsubscribeBookings = onSnapshot(bookingsQuery, (snapshot) => {
-        const updatedBookings = snapshot.docs.map(doc => doc.data() as Booking);
-        setBookings(updatedBookings);
-      });
-
-      // You could add listeners for hotels and rooms too if needed
-      // For now, we only make bookings real-time for the owner.
-
-      return () => {
-        unsubscribeBookings();
-      };
-    }
-  }, [user?.id]);
+    const unsubscribe = fetchData();
+    return () => unsubscribe && unsubscribe();
+  }, [fetchData]);
 
 
   if (loading) {
@@ -76,7 +105,7 @@ export function OwnerDashboard() {
   if (isAddingHotel) {
     return <AddHotelForm onFinished={() => {
       setIsAddingHotel(false);
-      fetchData(); // Refresh data after adding a hotel
+      // Data will refresh automatically due to listeners
     }} />;
   }
 

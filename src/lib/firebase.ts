@@ -22,6 +22,7 @@ const sampleUsersData: NewUser[] = [
     { name: 'Alice Owner', email: 'alice@example.com', password: 'password', role: 'owner' },
     { name: 'Bob Guest', email: 'bob@example.com', password: 'password', role: 'user' },
     { name: 'Admin User', email: 'admin@lodgify.lite', password: 'adminpassword', role: 'admin' },
+    { name: 'Charlie Owner', email: 'charlie@example.com', password: 'password', role: 'owner' },
 ];
 
 const sampleHotelsData: Omit<NewHotel, 'ownerId' | 'ownerName' | 'ownerEmail' | 'createdAt'>[] = [
@@ -81,6 +82,25 @@ const sampleHotelsData: Omit<NewHotel, 'ownerId' | 'ownerName' | 'ownerEmail' | 
         coverImage: 'https://lux-life.digital/wp-content/uploads/2019/09/turkish-hotel.jpg',
         category: 'Boutique',
         'data-ai-hint': 'modern hotel room'
+    },
+    {
+        name: 'Cozy Mountain Lodge',
+        location: 'Aspen, USA',
+        description: 'A rustic lodge offering a cozy retreat after a day on the slopes.',
+        address: "456 Ski Run, Aspen, USA",
+        phone: "555-345-6789",
+        email: "stay@cozylodge.com",
+        website: "https://cozylodge.com",
+        facilities: ["wifi", "parking", "restaurant"],
+        checkInTime: "16:00",
+        checkOutTime: "10:00",
+        cancellationPolicy: "Cancellation policy requires 14 days notice for a full refund.",
+        isPetFriendly: true,
+        documents: [],
+        status: 'pending',
+        coverImage: 'https://images.pexels.com/photos/208333/pexels-photo-208333.jpeg',
+        category: 'Boutique',
+        'data-ai-hint': 'ski lodge'
     }
 ];
 
@@ -134,7 +154,7 @@ const sampleRoomsData: Omit<NewRoom, 'hotelId' | 'createdAt' | 'status'>[] = [
 
 
 // --- Seeding Functions ---
-const seedCollection = async <T extends { email?: string, title?: string, name?: string }>(
+const seedCollection = async <T extends Record<string, any>>(
     collectionName: string, 
     data: T[], 
     uniqueField: keyof T & string
@@ -157,7 +177,7 @@ const seedCollection = async <T extends { email?: string, title?: string, name?:
 
     for (const item of newData) {
         const newDocRef = doc(collectionRef);
-        batch.set(newDocRef, { ...item, status: 'approved', createdAt: serverTimestamp() });
+        batch.set(newDocRef, { ...item, createdAt: serverTimestamp() });
     }
 
     await batch.commit();
@@ -170,50 +190,67 @@ const seedDatabase = async () => {
 
         const usersSnapshot = await getDocs(collection(db, 'users'));
         const users = usersSnapshot.docs.map(doc => ({ ...doc.data() as NewUser, id: doc.id }));
-        const owner = users.find(u => u.role === 'owner');
+        const aliceOwner = users.find(u => u.email === 'alice@example.com');
+        const charlieOwner = users.find(u => u.email === 'charlie@example.com');
 
-        if (owner) {
-            const hotelsWithOwnership = sampleHotelsData.map(hotel => ({
-                ...hotel,
-                ownerId: owner.id,
-                ownerName: owner.name,
-                ownerEmail: owner.email,
-            }));
-            await seedCollection<Omit<NewHotel, 'createdAt'>>('hotels', hotelsWithOwnership, 'name');
-
-            // Seed rooms for the hotels
-            const allHotelsSnapshot = await getDocs(collection(db, 'hotels'));
-            const allHotels = allHotelsSnapshot.docs.map(doc => ({ ...doc.data() as NewHotel, id: doc.id }));
-            
-            const grandPalace = allHotels.find(h => h.name === 'The Grand Palace');
-            const santoriniEscape = allHotels.find(h => h.name === 'Santorini Seaside Escape');
-            const modernHub = allHotels.find(h => h.name === 'Modern City Hub');
-
-            const roomsToSeed = [];
-            if(grandPalace) {
-                roomsToSeed.push({ ...sampleRoomsData[0], hotelId: grandPalace.id });
-                roomsToSeed.push({ ...sampleRoomsData[1], hotelId: grandPalace.id });
-            }
-            if(santoriniEscape) {
-                roomsToSeed.push({ ...sampleRoomsData[2], hotelId: santoriniEscape.id });
-                roomsToSeed.push({ ...sampleRoomsData[3], hotelId: santoriniEscape.id });
-            }
-            if(modernHub) {
-                roomsToSeed.push({ ...sampleRoomsData[4], hotelId: modernHub.id });
-                roomsToSeed.push({ ...sampleRoomsData[5], hotelId: modernHub.id });
-            }
-            
-            if(roomsToSeed.length > 0) {
-                await seedCollection(
-                    'rooms', 
-                     roomsToSeed.map(r => ({...r, status: 'approved'})), 
-                    'title'
-                );
-            }
-
-        } else {
-            console.log("Could not find an owner to seed hotels for.");
+        const hotelsToSeed: (Omit<NewHotel, 'createdAt'>)[] = [];
+        if (aliceOwner) {
+            // Assign first 3 hotels to Alice
+            sampleHotelsData.slice(0, 3).forEach(hotel => {
+                hotelsToSeed.push({
+                    ...hotel,
+                    ownerId: aliceOwner.id,
+                    ownerName: aliceOwner.name,
+                    ownerEmail: aliceOwner.email
+                });
+            });
         }
+        if (charlieOwner) {
+            // Assign the 4th hotel to Charlie
+             sampleHotelsData.slice(3, 4).forEach(hotel => {
+                hotelsToSeed.push({
+                    ...hotel,
+                    ownerId: charlieOwner.id,
+                    ownerName: charlieOwner.name,
+                    ownerEmail: charlieOwner.email
+                });
+            });
+        }
+        
+        if (hotelsToSeed.length > 0) {
+            await seedCollection('hotels', hotelsToSeed, 'name');
+        }
+
+        // Seed rooms for the hotels
+        const allHotelsSnapshot = await getDocs(collection(db, 'hotels'));
+        const allHotels = allHotelsSnapshot.docs.map(doc => ({ ...doc.data() as NewHotel, id: doc.id }));
+        
+        const grandPalace = allHotels.find(h => h.name === 'The Grand Palace');
+        const santoriniEscape = allHotels.find(h => h.name === 'Santorini Seaside Escape');
+        const modernHub = allHotels.find(h => h.name === 'Modern City Hub');
+
+        const roomsToSeed = [];
+        if(grandPalace) {
+            roomsToSeed.push({ ...sampleRoomsData[0], hotelId: grandPalace.id, status: 'approved' });
+            roomsToSeed.push({ ...sampleRoomsData[1], hotelId: grandPalace.id, status: 'approved' });
+        }
+        if(santoriniEscape) {
+            roomsToSeed.push({ ...sampleRoomsData[2], hotelId: santoriniEscape.id, status: 'approved' });
+            roomsToSeed.push({ ...sampleRoomsData[3], hotelId: santoriniEscape.id, status: 'approved' });
+        }
+        if(modernHub) {
+            roomsToSeed.push({ ...sampleRoomsData[4], hotelId: modernHub.id, status: 'approved' });
+            roomsToSeed.push({ ...sampleRoomsData[5], hotelId: modernHub.id, status: 'approved' });
+        }
+        
+        if(roomsToSeed.length > 0) {
+            await seedCollection(
+                'rooms', 
+                roomsToSeed, 
+                'title'
+            );
+        }
+
     } catch (error) {
         console.error("Error seeding database:", error);
     }

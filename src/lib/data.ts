@@ -310,7 +310,8 @@ export const cancelBooking = async (bookingId: string): Promise<void> => {
         throw new Error("This booking has already been cancelled.");
     }
 
-    const fromDate = booking.fromDate as Date;
+    // Ensure fromDate is a JS Date object
+    const fromDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : new Date(booking.fromDate);
     const today = startOfDay(new Date());
 
     if (startOfDay(fromDate) < today) {
