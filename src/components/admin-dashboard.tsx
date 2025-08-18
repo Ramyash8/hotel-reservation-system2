@@ -6,6 +6,7 @@ import {
   getAllUsers,
   updateHotelStatus,
   updateRoomStatus,
+  fromFirestore,
 } from "@/lib/data";
 import type { Hotel, Room, Booking, User } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,28 +33,6 @@ import { columns as allHotelsColumns } from "./admin/all-hotels-columns";
 import { columns as allUsersColumns } from "./admin/all-users-columns";
 
 
-// Helper to convert Firestore doc to our types, handling Timestamps
-const fromFirestore = <T extends { id: string }>(docSnap: any): T => {
-    const data = docSnap.data();
-
-    const result: { [key: string]: any } = {
-        id: docSnap.id,
-    };
-
-    for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-             if (data[key] instanceof Timestamp) {
-                result[key] = data[key].toDate();
-            } else {
-                result[key] = data[key];
-            }
-        }
-    }
-    
-    return result as T;
-};
-
-
 export function AdminDashboard() {
   const [pendingHotels, setPendingHotels] = useState<Hotel[]>([]);
   const [allHotels, setAllHotels] = useState<Hotel[]>([]);
@@ -73,14 +52,14 @@ export function AdminDashboard() {
     const usersQuery = query(collection(db, 'users'));
 
     const unsubscribeHotels = onSnapshot(hotelsQuery, (snapshot) => {
-        const hotelsData = snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
+        const hotelsData = snapshot.docs.map(doc => fromFirestore<Hotel>(doc)).filter(Boolean) as Hotel[];
         setAllHotels(hotelsData);
         setPendingHotels(hotelsData.filter(h => h.status === 'pending'));
         setLoading(false);
     });
 
     const unsubscribeRooms = onSnapshot(roomsQuery, async (snapshot) => {
-        const roomsData = snapshot.docs.map(doc => fromFirestore<Room>(doc));
+        const roomsData = snapshot.docs.map(doc => fromFirestore<Room>(doc)).filter(Boolean) as Room[];
         const enrichedRooms = await Promise.all(roomsData.map(async (room) => {
              const hotelDocRef = doc(db, 'hotels', room.hotelId);
              const hotelDoc = await getDoc(hotelDocRef);
@@ -91,12 +70,12 @@ export function AdminDashboard() {
     });
 
     const unsubscribeBookings = onSnapshot(bookingsQuery, (snapshot) => {
-        const bookingsData = snapshot.docs.map(doc => fromFirestore<Booking>(doc));
+        const bookingsData = snapshot.docs.map(doc => fromFirestore<Booking>(doc)).filter(Boolean) as Booking[];
         setBookings(bookingsData);
     });
 
     const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
-        const usersData = snapshot.docs.map(doc => fromFirestore<User>(doc));
+        const usersData = snapshot.docs.map(doc => fromFirestore<User>(doc)).filter(Boolean) as User[];
         setAllUsers(usersData);
     });
 

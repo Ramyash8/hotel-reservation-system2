@@ -15,8 +15,8 @@ const roomsCol = collection(db, "rooms");
 const bookingsCol = collection(db, "bookings");
 
 // Helper to convert Firestore doc to our types, now correctly handling Timestamps
-const fromFirestore = <T extends { id: string }>(docSnap: any): T | undefined => {
-    if (!docSnap.exists()) {
+export const fromFirestore = <T extends { id: string }>(docSnap: any): T | undefined => {
+    if (!docSnap?.exists()) {
         return undefined;
     }
 
