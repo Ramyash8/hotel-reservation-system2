@@ -1,25 +1,21 @@
 
+
 "use client"
 
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Star } from 'lucide-react';
+import { Star, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
+import type { Review } from '@/lib/types';
+import { format } from 'date-fns';
+import { useAuth } from '@/hooks/use-auth';
+import { deleteReview } from '@/lib/data';
+import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 
-type Review = {
-    id: string;
-    author: string;
-    country: string;
-    avatar: string;
-    date: string;
-    rating: number;
-    text: string;
-    tags?: string[];
-    images?: string[];
-}
 
 interface ReviewCardProps {
     review: Review;
@@ -28,26 +24,62 @@ interface ReviewCardProps {
 const MAX_TEXT_LENGTH = 180;
 
 export function ReviewCard({ review }: ReviewCardProps) {
+    const { user } = useAuth();
+    const { toast } = useToast();
     const [isExpanded, setIsExpanded] = useState(false);
-    const isLongText = review.text.length > MAX_TEXT_LENGTH;
+    
+    const isLongText = review.comment.length > MAX_TEXT_LENGTH;
+    const canDelete = user && user.id === review.userId;
 
     const toggleExpand = () => setIsExpanded(!isExpanded);
 
+    const handleDelete = async () => {
+        try {
+            await deleteReview(review.hotelId, review.id);
+            toast({ title: "Review deleted" });
+        } catch (error) {
+            toast({ variant: 'destructive', title: "Error", description: "Could not delete review." });
+        }
+    }
+
     const displayText = isLongText && !isExpanded 
-        ? `${review.text.substring(0, MAX_TEXT_LENGTH)}...` 
-        : review.text;
+        ? `${review.comment.substring(0, MAX_TEXT_LENGTH)}...` 
+        : review.comment;
 
     return (
         <div className="flex flex-col gap-4 border-b pb-8">
-            <div className="flex items-center gap-4">
-                <Avatar className="h-12 w-12">
-                    <AvatarImage src={review.avatar} alt={review.author} />
-                    <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                    <h4 className="font-bold">{review.author}</h4>
-                    <p className="text-sm text-muted-foreground">{review.country}</p>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Avatar className="h-12 w-12">
+                        <AvatarImage src={review.userAvatar} alt={review.userName} />
+                        <AvatarFallback>{review.userName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <h4 className="font-bold">{review.userName}</h4>
+                        <p className="text-sm text-muted-foreground">{review.userCountry}</p>
+                    </div>
                 </div>
+                {canDelete && (
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete your review.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                )}
             </div>
             <div className="flex items-center gap-2">
                 <div className="flex items-center">
@@ -55,7 +87,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
                         <Star key={i} className={`h-4 w-4 ${i < review.rating ? 'text-primary fill-primary' : 'text-muted-foreground/50'}`} />
                     ))}
                 </div>
-                <p className="text-sm font-semibold">{review.date}</p>
+                <p className="text-sm font-semibold">{format(review.createdAt as Date, 'LLLL yyyy')}</p>
             </div>
             <p className="text-muted-foreground leading-relaxed">
                 {displayText}
@@ -66,54 +98,8 @@ export function ReviewCard({ review }: ReviewCardProps) {
                 )}
             </p>
             
-            {review.images && review.images.length > 0 && (
-                <div className="flex gap-2">
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <div className="flex gap-2 cursor-pointer">
-                                {review.images.slice(0, 3).map((src, index) => (
-                                    <div key={index} className="relative w-24 h-24 rounded-lg overflow-hidden">
-                                        <Image src={src} alt={`Review image ${index + 1}`} layout="fill" objectFit="cover" className="bg-muted hover:opacity-80 transition-opacity" />
-                                        {index === 2 && review.images && review.images.length > 3 && (
-                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-lg">
-                                                +{review.images.length - 3}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl h-[80vh] p-0 border-0 flex items-center justify-center">
-                           <DialogHeader className="sr-only">
-                                <DialogTitle>Review Image Gallery</DialogTitle>
-                                <DialogDescription>A carousel of images attached to the review by {review.author}.</DialogDescription>
-                            </DialogHeader>
-                           <Carousel className="w-full h-full">
-                                <CarouselContent className="h-full">
-                                    {review.images.map((src, index) => (
-                                        <CarouselItem key={index} className="h-full flex items-center justify-center p-4">
-                                            <div className="relative h-full w-full">
-                                                <Image
-                                                    src={src}
-                                                    alt={`Review gallery image ${index + 1}`}
-                                                    layout="fill"
-                                                    objectFit="contain"
-                                                />
-                                            </div>
-                                        </CarouselItem>
-                                    ))}
-                                </CarouselContent>
-                                {review.images.length > 1 && (
-                                    <>
-                                        <CarouselPrevious className="absolute left-4 bg-background/50 hover:bg-background" />
-                                        <CarouselNext className="absolute right-4 bg-background/50 hover:bg-background" />
-                                    </>
-                                )}
-                            </Carousel>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-            )}
+            {/* This part for review images is currently disabled as we are not collecting images yet */}
+            {/* {review.images && review.images.length > 0 && ( ... )} */}
         </div>
     );
 }

@@ -96,3 +96,17 @@ export type Booking = {
 };
 
 export type NewBooking = Omit<Booking, 'id' | 'createdAt' | 'status'>
+
+export type Review = {
+    id: string;
+    userId: string;
+    userName: string;
+    userAvatar: string;
+    userCountry: string; // Added for UI consistency
+    hotelId: string;
+    rating: number;
+    comment: string;
+    createdAt: Date | Timestamp;
+}
+
+export type NewReview = Omit<Review, 'id' | 'createdAt'>;

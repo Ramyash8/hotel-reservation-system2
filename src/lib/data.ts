@@ -1,8 +1,8 @@
 
 
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp, writeBatch, documentId, onSnapshot } from 'firebase/firestore';
-import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom, NewBooking } from './types';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, Timestamp, serverTimestamp, writeBatch, documentId, onSnapshot, deleteDoc, orderBy } from 'firebase/firestore';
+import type { User, Hotel, Room, Booking, NewHotel, NewUser, HotelSearchCriteria, NewRoom, NewBooking, NewReview, Review } from './types';
 import { differenceInDays, startOfDay } from 'date-fns';
 
 // This file should solely interact with Firestore as the single source of truth.
@@ -336,15 +336,14 @@ export const cancelBooking = async (bookingId: string): Promise<void> => {
         throw new Error("Booking not found.");
     }
 
-    if (booking.status === 'cancelled') {
+    if (booking.status.trim().toLowerCase() === 'cancelled') {
         throw new Error("This booking has already been cancelled.");
     }
 
     // Ensure fromDate is a JS Date object
     const fromDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : new Date(booking.fromDate);
-    const today = startOfDay(new Date());
-
-    if (startOfDay(fromDate) < today) {
+    
+    if (startOfDay(fromDate) < startOfDay(new Date())) {
         throw new Error("Cannot cancel a booking after the check-in date has passed.");
     }
     
@@ -353,4 +352,35 @@ export const cancelBooking = async (bookingId: string): Promise<void> => {
         cancelledAt: serverTimestamp()
     });
     console.log(`Booking ${bookingId} cancelled.`);
+};
+
+// Review Functions
+export const createReview = async (reviewData: NewReview): Promise<Review> => {
+    const reviewCol = collection(db, `hotels/${reviewData.hotelId}/reviews`);
+    
+    const reviewWithTimestamp = {
+        ...reviewData,
+        createdAt: serverTimestamp(),
+    };
+
+    const newDocRef = await addDoc(reviewCol, reviewWithTimestamp);
+    
+    return {
+        id: newDocRef.id,
+        ...reviewData,
+        createdAt: new Date(),
+    };
+}
+
+export const getReviewsByHotelId = async (hotelId: string): Promise<Review[]> => {
+    const reviewCol = collection(db, `hotels/${hotelId}/reviews`);
+    const q = query(reviewCol, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => fromFirestore<Review>(doc)).filter(Boolean) as Review[];
+}
+
+export const deleteReview = async (hotelId: string, reviewId: string): Promise<void> => {
+    const reviewRef = doc(db, `hotels/${hotelId}/reviews`, reviewId);
+    await deleteDoc(reviewRef);
+    console.log(`Deleted review ${reviewId} from hotel ${hotelId}.`);
 };

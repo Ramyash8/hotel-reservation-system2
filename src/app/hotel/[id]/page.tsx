@@ -1,4 +1,5 @@
 
+
 import { notFound } from 'next/navigation';
 import { getHotelById, getRoomsByHotelId } from '@/lib/data';
 import { Header } from '@/components/header';
@@ -131,7 +132,7 @@ export default async function HotelPage({ params }: HotelPageProps) {
             
              <Separator className="my-12" />
              
-             <ReviewsSection />
+             <ReviewsSection hotelId={params.id} />
 
              <Separator className="my-12" />
 
