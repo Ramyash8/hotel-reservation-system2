@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { getBookingsByUser, cancelBooking } from '@/lib/data';
+import { getBookingsByUser, cancelBooking, fromFirestore } from '@/lib/data';
 import type { Booking } from '@/lib/types';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Loader2, BedDouble, Calendar, MapPin, Ban } from 'lucide-react';
@@ -23,7 +23,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp, collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 
 export function UserBookings() {
@@ -34,26 +35,26 @@ export function UserBookings() {
     const [isCancelling, startTransition] = useTransition();
     const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
 
-    const fetchBookings = () => {
+    useEffect(() => {
         if (user) {
             setLoading(true);
-            getBookingsByUser(user.id)
-                .then(b => {
-                    const sortedBookings = b.sort((a,b) => {
-                        const dateA = a.fromDate instanceof Timestamp ? a.fromDate.toDate() : new Date(a.fromDate);
-                        const dateB = b.fromDate instanceof Timestamp ? b.fromDate.toDate() : new Date(b.fromDate);
-                        return dateB.getTime() - dateA.getTime();
-                    });
-                    setBookings(sortedBookings);
-                })
-                .finally(() => setLoading(false));
+            const bookingsQuery = query(
+                collection(db, 'bookings'),
+                where('userId', '==', user.id),
+                orderBy('fromDate', 'desc')
+            );
+
+            const unsubscribe = onSnapshot(bookingsQuery, (snapshot) => {
+                const userBookings = snapshot.docs.map(doc => fromFirestore<Booking>(doc)).filter(Boolean) as Booking[];
+                setBookings(userBookings);
+                setLoading(false);
+            });
+
+            return () => unsubscribe();
         } else {
+            setBookings([]);
             setLoading(false);
         }
-    }
-
-    useEffect(() => {
-        fetchBookings();
     }, [user]);
 
     const handleCancelBooking = async () => {
@@ -66,7 +67,7 @@ export function UserBookings() {
                     title: "Booking Cancelled",
                     description: "Your reservation has been successfully cancelled.",
                 });
-                fetchBookings(); // Refresh the list
+                // No need to fetch, real-time listener will update the UI
             } catch (error) {
                  toast({
                     variant: "destructive",
@@ -111,8 +112,8 @@ export function UserBookings() {
         <>
             <div className="space-y-8">
                 {bookings.map((booking) => {
-                    const fromDate = booking.fromDate instanceof Timestamp ? booking.fromDate.toDate() : new Date(booking.fromDate);
-                    const toDate = booking.toDate instanceof Timestamp ? booking.toDate.toDate() : new Date(booking.toDate);
+                    const fromDate = booking.fromDate as Date;
+                    const toDate = booking.toDate as Date;
                     
                     const isCancelled = booking.status.trim().toLowerCase() === 'cancelled';
                     const isDateInPast = startOfDay(fromDate) < startOfDay(new Date());

@@ -11,7 +11,7 @@ import { Loader2, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import type { Review } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { collection, query, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 import { AddReviewForm } from './add-review-form';
 import { Separator } from './ui/separator';
 import { fromFirestore } from '@/lib/data';

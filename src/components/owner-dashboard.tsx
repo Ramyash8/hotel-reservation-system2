@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AddHotelForm } from "./add-hotel-form";
-import { getRoomsByOwner, getBookingsByOwner } from "@/lib/data"; // Keep for now
+import { getRoomsByOwner, getBookingsByOwner, fromFirestore } from "@/lib/data"; // Keep for now
 import { useAuth } from "@/hooks/use-auth";
 import type { Hotel, Room, Booking } from "@/lib/types";
 import { Loader2, User, Calendar, PlusCircle, Briefcase, ExternalLink } from "lucide-react";
@@ -17,21 +17,6 @@ import { format } from "date-fns";
 import { Button } from "./ui/button";
 import { collection, onSnapshot, query, where, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-
-const fromFirestore = <T extends { id: string }>(docSnap: any): T => {
-    const data = docSnap.data();
-    const result: { [key: string]: any } = { id: docSnap.id };
-    for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-             if (data[key] instanceof Timestamp) {
-                result[key] = data[key].toDate();
-            } else {
-                result[key] = data[key];
-            }
-        }
-    }
-    return result as T;
-};
 
 
 export function OwnerDashboard() {
@@ -52,7 +37,7 @@ export function OwnerDashboard() {
 
     const hotelsQuery = query(collection(db, 'hotels'), where('ownerId', '==', user.id));
     const unsubscribeHotels = onSnapshot(hotelsQuery, snapshot => {
-        const ownerHotels = snapshot.docs.map(doc => fromFirestore<Hotel>(doc));
+        const ownerHotels = snapshot.docs.map(doc => fromFirestore<Hotel>(doc)).filter(Boolean) as Hotel[];
         setHotels(ownerHotels);
         
         if (ownerHotels.length > 0) {
@@ -60,13 +45,13 @@ export function OwnerDashboard() {
 
             const roomsQuery = query(collection(db, 'rooms'), where('hotelId', 'in', hotelIds));
             const unsubscribeRooms = onSnapshot(roomsQuery, roomSnapshot => {
-                const ownerRooms = roomSnapshot.docs.map(doc => fromFirestore<Room>(doc));
+                const ownerRooms = roomSnapshot.docs.map(doc => fromFirestore<Room>(doc)).filter(Boolean) as Room[];
                 setRooms(ownerRooms);
             });
             
             const bookingsQuery = query(collection(db, 'bookings'), where('hotelOwnerId', '==', user.id));
             const unsubscribeBookings = onSnapshot(bookingsQuery, bookingSnapshot => {
-                const ownerBookings = bookingSnapshot.docs.map(doc => fromFirestore<Booking>(doc));
+                const ownerBookings = bookingSnapshot.docs.map(doc => fromFirestore<Booking>(doc)).filter(Boolean) as Booking[];
                 setBookings(ownerBookings);
             });
 
