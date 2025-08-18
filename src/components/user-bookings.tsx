@@ -8,7 +8,7 @@ import type { Booking } from '@/lib/types';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Loader2, BedDouble, Calendar, MapPin, Ban } from 'lucide-react';
 import Image from 'next/image';
-import { format, startOfDay } from 'date-fns';
+import { format, startOfDay, isPast } from 'date-fns';
 import { Badge } from './ui/badge';
 import Link from 'next/link';
 import { Button } from './ui/button';
@@ -115,9 +115,7 @@ export function UserBookings() {
                     const toDate = booking.toDate instanceof Timestamp ? booking.toDate.toDate() : new Date(booking.toDate);
                     const isCancelled = booking.status === 'cancelled';
                     
-                    const today = startOfDay(new Date());
-                    const checkInDate = startOfDay(fromDate);
-                    const isDateInPast = checkInDate < today;
+                    const isDateInPast = isPast(startOfDay(fromDate));
 
                     const canCancel = !isDateInPast && !isCancelled;
 
