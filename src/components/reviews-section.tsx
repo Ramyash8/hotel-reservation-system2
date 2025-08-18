@@ -14,27 +14,12 @@ import { db } from '@/lib/firebase';
 import { collection, query, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
 import { AddReviewForm } from './add-review-form';
 import { Separator } from './ui/separator';
-import { getReviewsByHotelId } from '@/lib/data';
+import { fromFirestore } from '@/lib/data';
 
 
 interface ReviewsSectionProps {
     hotelId: string;
 }
-
-const fromFirestore = <T extends { id: string }>(docSnap: any): T => {
-    const data = docSnap.data();
-    const result: { [key: string]: any } = { id: docSnap.id };
-    for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-             if (data[key] instanceof Timestamp) {
-                result[key] = data[key].toDate();
-            } else {
-                result[key] = data[key];
-            }
-        }
-    }
-    return result as T;
-};
 
 export function ReviewsSection({ hotelId }: ReviewsSectionProps) {
     const { user } = useAuth();
@@ -48,7 +33,7 @@ export function ReviewsSection({ hotelId }: ReviewsSectionProps) {
         const reviewsQuery = query(collection(db, `hotels/${hotelId}/reviews`), orderBy('createdAt', 'desc'));
         
         const unsubscribe = onSnapshot(reviewsQuery, (snapshot) => {
-            const reviewsData = snapshot.docs.map(doc => fromFirestore<Review>(doc));
+            const reviewsData = snapshot.docs.map(doc => fromFirestore<Review>(doc)).filter(Boolean) as Review[];
             setReviews(reviewsData);
             setLoading(false);
         }, (error) => {
