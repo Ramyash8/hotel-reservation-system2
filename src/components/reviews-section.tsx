@@ -11,9 +11,11 @@ import { Loader2, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import type { Review } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
 import { AddReviewForm } from './add-review-form';
 import { Separator } from './ui/separator';
+import { getReviewsByHotelId } from '@/lib/data';
+
 
 interface ReviewsSectionProps {
     hotelId: string;
@@ -33,7 +35,6 @@ const fromFirestore = <T extends { id: string }>(docSnap: any): T => {
     }
     return result as T;
 };
-import { Timestamp } from 'firebase/firestore';
 
 export function ReviewsSection({ hotelId }: ReviewsSectionProps) {
     const { user } = useAuth();
