@@ -1,7 +1,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, query, getDocs, addDoc, serverTimestamp, writeBatch, doc } from 'firebase/firestore';
-import type { NewHotel, NewUser, NewRoom } from './types';
+import type { NewHotel, NewUser, NewRoom, NewReview } from './types';
 
 
 const firebaseConfig = {
@@ -152,6 +152,32 @@ const sampleRoomsData: Omit<NewRoom, 'hotelId' | 'createdAt' | 'status'>[] = [
     }
 ];
 
+const sampleReviewsData = [
+  // Reviews for The Grand Palace
+  {
+    rating: 5,
+    comment: "Absolutely stunning hotel with breathtaking views. The service was impeccable from start to finish. A truly luxurious experience.",
+  },
+  {
+    rating: 4,
+    comment: "Great location and beautiful facilities. The pool area is fantastic. The room was spacious and clean, though the restaurant was a bit pricey.",
+  },
+  // Reviews for Santorini Seaside Escape
+  {
+    rating: 5,
+    comment: "The view from our suite was unbelievable. Waking up to the caldera every morning was magical. The staff were friendly and accommodating. Highly recommend!",
+  },
+  {
+    rating: 5,
+    comment: "Perfect honeymoon destination. The privacy of the infinity pool villa is unmatched. It's expensive, but worth every penny for a special occasion.",
+  },
+  // Reviews for Modern City Hub
+  {
+    rating: 4,
+    comment: "Very clean, modern, and conveniently located for business meetings. The gym is well-equipped. It's not a 'resort' but it's perfect for a city trip.",
+  },
+];
+
 
 // --- Seeding Functions ---
 const seedCollection = async <T extends Record<string, any>>(
@@ -169,20 +195,49 @@ const seedCollection = async <T extends Record<string, any>>(
 
     if (newData.length === 0) {
         console.log(`${collectionName} collection is already up to date. Seeding skipped.`);
-        return;
+        return [];
     }
 
     console.log(`Seeding ${newData.length} new documents into ${collectionName}...`);
     const batch = writeBatch(db);
+    const newDocIds: string[] = [];
 
     for (const item of newData) {
         const newDocRef = doc(collectionRef);
         batch.set(newDocRef, { ...item, createdAt: serverTimestamp() });
+        newDocIds.push(newDocRef.id);
     }
 
     await batch.commit();
     console.log(`${newData.length} documents seeded into ${collectionName}.`);
+    return newDocIds;
 };
+
+const seedSubcollection = async (
+    parentCollection: string,
+    parentId: string,
+    subcollectionName: string,
+    data: any[]
+) => {
+    const subcollectionRef = collection(db, parentCollection, parentId, subcollectionName);
+    console.log(`Checking if ${subcollectionName} for ${parentId} needs seeding...`);
+
+    const existingDocsSnapshot = await getDocs(query(subcollectionRef));
+    if (existingDocsSnapshot.size > 0) {
+        console.log(`Subcollection ${subcollectionName} for ${parentId} already has data. Seeding skipped.`);
+        return;
+    }
+
+    console.log(`Seeding ${data.length} documents into ${subcollectionName} for ${parentId}...`);
+    const batch = writeBatch(db);
+    for (const item of data) {
+        const newDocRef = doc(subcollectionRef);
+        batch.set(newDocRef, { ...item, createdAt: serverTimestamp() });
+    }
+    await batch.commit();
+    console.log(`Seeded ${subcollectionName} for ${parentId}.`);
+}
+
 
 const seedDatabase = async () => {
     try {
@@ -192,10 +247,10 @@ const seedDatabase = async () => {
         const users = usersSnapshot.docs.map(doc => ({ ...doc.data() as NewUser, id: doc.id }));
         const aliceOwner = users.find(u => u.email === 'alice@example.com');
         const charlieOwner = users.find(u => u.email === 'charlie@example.com');
+        const bobGuest = users.find(u => u.email === 'bob@example.com');
 
         const hotelsToSeed: (Omit<NewHotel, 'createdAt'>)[] = [];
         if (aliceOwner) {
-            // Assign first 3 hotels to Alice
             sampleHotelsData.slice(0, 3).forEach(hotel => {
                 hotelsToSeed.push({
                     ...hotel,
@@ -206,7 +261,6 @@ const seedDatabase = async () => {
             });
         }
         if (charlieOwner) {
-            // Assign the 4th hotel to Charlie
              sampleHotelsData.slice(3, 4).forEach(hotel => {
                 hotelsToSeed.push({
                     ...hotel,
@@ -221,7 +275,6 @@ const seedDatabase = async () => {
             await seedCollection('hotels', hotelsToSeed, 'name');
         }
 
-        // Seed rooms for the hotels
         const allHotelsSnapshot = await getDocs(collection(db, 'hotels'));
         const allHotels = allHotelsSnapshot.docs.map(doc => ({ ...doc.data() as NewHotel, id: doc.id }));
         
@@ -244,11 +297,35 @@ const seedDatabase = async () => {
         }
         
         if(roomsToSeed.length > 0) {
-            await seedCollection(
-                'rooms', 
-                roomsToSeed, 
-                'title'
-            );
+            await seedCollection('rooms', roomsToSeed, 'title');
+        }
+        
+        // Seed Reviews
+        if (bobGuest) {
+            const guestReviewBase = {
+                userId: bobGuest.id,
+                userName: bobGuest.name,
+                userAvatar: `https://i.pravatar.cc/150?u=${bobGuest.id}`,
+                userCountry: 'USA'
+            };
+
+            if (grandPalace) {
+                await seedSubcollection('hotels', grandPalace.id, 'reviews', [
+                    { ...guestReviewBase, hotelId: grandPalace.id, ...sampleReviewsData[0] },
+                    { ...guestReviewBase, hotelId: grandPalace.id, ...sampleReviewsData[1] }
+                ]);
+            }
+            if (santoriniEscape) {
+                 await seedSubcollection('hotels', santoriniEscape.id, 'reviews', [
+                    { ...guestReviewBase, hotelId: santoriniEscape.id, ...sampleReviewsData[2] },
+                    { ...guestReviewBase, hotelId: santoriniEscape.id, ...sampleReviewsData[3] }
+                ]);
+            }
+             if (modernHub) {
+                 await seedSubcollection('hotels', modernHub.id, 'reviews', [
+                    { ...guestReviewBase, hotelId: modernHub.id, ...sampleReviewsData[4] }
+                ]);
+            }
         }
 
     } catch (error) {
