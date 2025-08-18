@@ -235,6 +235,36 @@ export const createBooking = async (bookingData: NewBooking): Promise<Booking> =
         throw new Error("Missing required booking information.");
     }
 
+    // --- Double Booking Prevention ---
+    const q = query(
+        bookingsCol,
+        where('roomId', '==', bookingData.roomId),
+        where('status', '==', 'confirmed')
+    );
+    const existingBookingsSnapshot = await getDocs(q);
+    const existingBookings = existingBookingsSnapshot.docs.map(doc => fromFirestore<Booking>(doc));
+
+    const newBookingStart = startOfDay(from as Date);
+    const newBookingEnd = startOfDay(to as Date);
+
+    const isOverlapping = existingBookings.some(booking => {
+        if (!booking) return false;
+        const existingStart = startOfDay(booking.fromDate as Date);
+        const existingEnd = startOfDay(booking.toDate as Date);
+        
+        // Overlap conditions:
+        // 1. New booking starts during an existing booking
+        // 2. New booking ends during an existing booking
+        // 3. New booking envelops an existing booking
+        // 4. Existing booking envelops a new booking
+        return (newBookingStart < existingEnd) && (newBookingEnd > existingStart);
+    });
+
+    if (isOverlapping) {
+        throw new Error("This room is unavailable for the selected dates. Please choose different dates.");
+    }
+    // --- End Double Booking Prevention ---
+
     const room = await getRoomById(bookingData.roomId);
     if (!room) throw new Error("Room not found.");
     const hotel = await getHotelById(bookingData.hotelId);
@@ -249,8 +279,8 @@ export const createBooking = async (bookingData: NewBooking): Promise<Booking> =
     
     const newBookingData = {
         ...bookingData,
-        fromDate: Timestamp.fromDate(from),
-        toDate: Timestamp.fromDate(to),
+        fromDate: Timestamp.fromDate(from as Date),
+        toDate: Timestamp.fromDate(to as Date),
         totalPrice: room.price * numberOfNights,
         status: 'confirmed' as const,
         createdAt: serverTimestamp(),
