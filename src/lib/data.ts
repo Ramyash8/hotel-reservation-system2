@@ -14,6 +14,27 @@ const hotelsCol = collection(db, "hotels");
 const roomsCol = collection(db, "rooms");
 const bookingsCol = collection(db, "bookings");
 
+// Helper to recursively convert Firestore Timestamps to JS Dates
+const convertTimestamps = (data: any): any => {
+    if (data instanceof Timestamp) {
+        return data.toDate();
+    }
+    if (Array.isArray(data)) {
+        return data.map(item => convertTimestamps(item));
+    }
+    if (data !== null && typeof data === 'object') {
+        const newObj: { [key: string]: any } = {};
+        for (const key in data) {
+            if (Object.prototype.hasOwnProperty.call(data, key)) {
+                newObj[key] = convertTimestamps(data[key]);
+            }
+        }
+        return newObj;
+    }
+    return data;
+};
+
+
 // Helper to convert Firestore doc to our types, now correctly handling Timestamps
 export const fromFirestore = <T extends { id: string }>(docSnap: any): T | undefined => {
     if (!docSnap?.exists()) {
@@ -23,21 +44,12 @@ export const fromFirestore = <T extends { id: string }>(docSnap: any): T | undef
     const data = docSnap.data();
     if (!data) return undefined;
 
-    const result: { [key: string]: any } = {
-        id: docSnap.id,
-    };
+    const convertedData = convertTimestamps(data);
 
-    for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-             if (data[key] instanceof Timestamp) {
-                result[key] = data[key].toDate();
-            } else {
-                result[key] = data[key];
-            }
-        }
-    }
-    
-    return result as T;
+    return {
+        id: docSnap.id,
+        ...convertedData
+    } as T;
 };
 
 
@@ -384,3 +396,4 @@ export const deleteReview = async (hotelId: string, reviewId: string): Promise<v
     await deleteDoc(reviewRef);
     console.log(`Deleted review ${reviewId} from hotel ${hotelId}.`);
 };
+
