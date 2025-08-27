@@ -28,19 +28,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const checkUser = async () => {
-      setLoading(true);
-      try {
-        const userId = localStorage.getItem("userId");
-        if (userId) {
-          const fetchedUser = await getUserById(userId);
-          setUser(fetchedUser || null);
+      // Only run this on the client
+      if (typeof window !== 'undefined') {
+        setLoading(true);
+        try {
+          const userId = localStorage.getItem("userId");
+          if (userId) {
+            const fetchedUser = await getUserById(userId);
+            setUser(fetchedUser || null);
+          }
+        } catch (error) {
+          console.error("Failed to fetch user on initial load:", error);
+          setUser(null);
+          localStorage.removeItem("userId");
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error("Failed to fetch user on initial load:", error);
-        setUser(null);
-        localStorage.removeItem("userId");
-      } finally {
-        setLoading(false);
+      } else {
+         setLoading(false);
       }
     };
     checkUser();
