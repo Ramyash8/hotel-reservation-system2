@@ -16,11 +16,10 @@ export default function AboutPage() {
         {/* Hero Section */}
         <div className="relative h-64 w-full">
             <Image 
-                src="https://placehold.co/1600x600.png"
+                src="https://picsum.photos/1600/600"
                 alt="Abstract background image for about page"
-                layout="fill"
-                objectFit="cover"
-                className="opacity-20"
+                fill
+                className="opacity-20 object-cover"
                 data-ai-hint="abstract texture"
             />
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">

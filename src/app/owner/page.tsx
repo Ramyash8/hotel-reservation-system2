@@ -2,7 +2,6 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { OwnerDashboard } from "@/components/owner-dashboard";
-import { Briefcase } from "lucide-react";
 
 export default function OwnerPage() {
   return (
