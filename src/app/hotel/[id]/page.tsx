@@ -111,7 +111,7 @@ export default async function HotelPage({ params }: HotelPageProps) {
                      <div className="py-8 border-b">
                         <h2 className="text-2xl font-semibold mb-4">What this place offers</h2>
                         <div className="grid grid-cols-2 gap-4">
-                            {hotel.facilities.map(facility => {
+                            {hotel.facilities && hotel.facilities.map(facility => {
                                 const Icon = facilityIconMap[facility];
                                 return Icon ? (
                                     <div key={facility} className="flex items-center gap-3">
