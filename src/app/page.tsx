@@ -6,18 +6,38 @@ import { HotelCard } from '@/components/hotel-card';
 import { getApprovedHotels, getRoomsByHotelId } from '@/lib/data';
 import { SearchForm } from '@/components/search-form';
 import { Button } from '@/components/ui/button';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { fromFirestore } from '@/lib/data';
+import type { Room } from '@/lib/types';
 
 export default async function HomePage() {
+  // Optimized data fetching:
+  // 1. Fetch all approved hotels
   const allHotels = await getApprovedHotels();
+  const hotelIds = allHotels.map(h => h.id);
 
-  // Fetch prices for all hotels
-  const hotelsWithPricesPromises = allHotels.map(async hotel => {
-    const rooms = await getRoomsByHotelId(hotel.id);
-    const cheapestRoom = rooms.reduce((min, room) => (room.price < min ? room.price : min), Infinity);
-    return { ...hotel, price: rooms.length > 0 ? cheapestRoom : null };
-  });
+  // 2. Fetch all approved rooms for those hotels in a single query
+  let allRooms: Room[] = [];
+  if (hotelIds.length > 0) {
+      const roomsQuery = query(collection(db, 'rooms'), where('hotelId', 'in', hotelIds), where('status', '==', 'approved'));
+      const roomsSnapshot = await getDocs(roomsQuery);
+      allRooms = roomsSnapshot.docs.map(doc => fromFirestore<Room>(doc)).filter(Boolean) as Room[];
+  }
 
-  const hotelsWithPrices = await Promise.all(hotelsWithPricesPromises);
+  // 3. Process rooms in memory to find the cheapest price for each hotel
+  const pricesByHotelId = allRooms.reduce((acc, room) => {
+    if (!acc[room.hotelId] || room.price < acc[room.hotelId]) {
+      acc[room.hotelId] = room.price;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
+  const hotelsWithPrices = allHotels.map(hotel => ({
+    ...hotel,
+    price: pricesByHotelId[hotel.id] || null,
+  }));
+
 
   // Create different categories for demonstration, in a real app this would come from the database
   const popularInTurkey = hotelsWithPrices.filter(h => h.location.toLowerCase().includes('turkey')).slice(0, 6);
