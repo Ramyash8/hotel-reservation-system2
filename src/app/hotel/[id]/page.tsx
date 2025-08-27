@@ -136,11 +136,21 @@ export default async function HotelPage({ params }: HotelPageProps) {
 
              <Separator className="my-12" />
 
-             {/* Map Section - Placeholder */}
+             {/* Map Section */}
               <div>
                 <h2 className="text-2xl font-semibold mb-4">Where you'll be</h2>
-                 <div className="h-96 bg-muted rounded-xl flex items-center justify-center">
-                    <p>Map placeholder</p>
+                <div className="h-96 w-full rounded-xl overflow-hidden">
+                    <iframe
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        scrolling="no"
+                        marginHeight={0}
+                        marginWidth={0}
+                        src={`https://maps.google.com/maps?q=${encodeURIComponent(hotel.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                        title={`Map of ${hotel.name}`}
+                        aria-label={`Map of ${hotel.name}`}
+                    ></iframe>
                  </div>
               </div>
 
