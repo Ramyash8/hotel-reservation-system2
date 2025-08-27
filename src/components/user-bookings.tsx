@@ -40,12 +40,15 @@ export function UserBookings() {
             setLoading(true);
             const bookingsQuery = query(
                 collection(db, 'bookings'),
-                where('userId', '==', user.id),
-                orderBy('fromDate', 'desc')
+                where('userId', '==', user.id)
+                // Removed orderBy to prevent index requirement for this demo.
+                // Sorting will be done client-side.
             );
 
             const unsubscribe = onSnapshot(bookingsQuery, (snapshot) => {
                 const userBookings = snapshot.docs.map(doc => fromFirestore<Booking>(doc)).filter(Boolean) as Booking[];
+                // Sort client-side
+                userBookings.sort((a, b) => (b.fromDate as Date).getTime() - (a.fromDate as Date).getTime());
                 setBookings(userBookings);
                 setLoading(false);
             });
